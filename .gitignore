@@ -1,62 +1,17 @@
 ```
-# Build system
+# Gradle
 .gradle/
 build/
 target/
 
 # Dependencies
-node_modules/
-.libs/
 lib/
-deps/
-
-# IDE
-.idea/
-.vscode/
-*.iml
-*.ipr
-*.iws
-
-# OS
-.DS_Store
-Thumbs.db
+libs/
 
 # Logs
 *.log
 
-# Environment
-.env
-.env.local
-*.env*
-
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-*.egg-info/
-.eggs/
-
 # Temporary files
 *.tmp
 *.temp
-*~
-.swp
-.swo
-
-# Archives
-*.zip
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.gz
-*.rar
-*.7z
 ```
