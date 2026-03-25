@@ -6,8 +6,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import javax.annotation.PostConstruct
 import com.citologic.model.Users
+import jakarta.annotation.PostConstruct
 
 @Configuration
 class DatabaseConfig(
