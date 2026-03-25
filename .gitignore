@@ -1,0 +1,46 @@
+```
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Kotlin
+*.kt.bak
+*.kotlin_metadata
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.hprof
+
+# Dependencies
+libs/
+lib/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+*.env*
+
+# Temporary files
+*.tmp
+*.temp
+*~
+```
