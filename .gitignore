@@ -1,17 +1,35 @@
 ```
-# Gradle
-.gradle/
+# Build artifacts
 build/
-target/
+*.jar
+*.war
+*.class
+*.gradle/
 
 # Dependencies
+.gradle/
+node_modules/
 lib/
-libs/
+vendor/
 
 # Logs
 *.log
 
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
 # Temporary files
 *.tmp
 *.temp
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+*.env.*
 ```

@@ -9,6 +9,8 @@ plugins {
 group = "com.citologic"
 version = "0.0.1-SNAPSHOT"
 
+extra["springBootVersion"] = "3.2.2"
+
 java {
     sourceCompatibility = JavaVersion.VERSION_17
 }
