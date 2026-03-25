@@ -1,35 +1,17 @@
 ```
-# Build artifacts
+# Gradle
+.gradle/
 build/
-*.jar
-*.war
-*.class
-*.gradle/
+!build.gradle.kts
 
 # Dependencies
-.gradle/
-node_modules/
 lib/
-vendor/
+libs/
 
 # Logs
 *.log
 
-# IDE
-.idea/
-.vscode/
-*.iml
-*.ipr
-*.iws
-
 # Temporary files
 *.tmp
 *.temp
-.DS_Store
-Thumbs.db
-
-# Environment
-.env
-.env.local
-*.env.*
 ```
