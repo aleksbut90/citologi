@@ -3,7 +3,6 @@ package com.citologic.model
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.timestamp
-import org.jetbrains.exposed.sql.functions.CurrentDateTime
 import java.time.LocalDate
 import java.time.Instant
 
@@ -28,7 +27,7 @@ object UserSessions : Table("user_sessions") {
     val id = integer("id").autoIncrement()
     val userId = varchar("user_id", 255)
     val sessionHash = varchar("session_hash", 255)
-    val createdAt = timestamp("created_at").defaultExpression(CurrentDateTime)
+    val createdAt = timestamp("created_at")
     val expiresAt = timestamp("expires_at")
     val isActive = bool("is_active").default(true)
     val sessionId = integer("session_id").nullable()
@@ -125,7 +124,7 @@ object Physicians : Table("physicians") {
     val id = integer("id").autoIncrement()
     val fullName = varchar("full_name", 255)
     val role = varchar("role", 50)
-    val createdAt = timestamp("created_at").defaultExpression(CurrentDateTime)
+    val createdAt = timestamp("created_at")
 
     override val primaryKey = PrimaryKey(id)
 }
