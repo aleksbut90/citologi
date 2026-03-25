@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация - Система учета цитологических исследований</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            margin: 1rem;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-header img {
+            width: 90px;
+            height: 80px;
+            margin-bottom: 1rem;
+        }
+        .form-floating {
+            margin-bottom: 1rem;
+        }
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 0.8rem;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            background: #0d6efd;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: #0b5ed7;
+            transform: translateY(-2px);
+        }
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+        }
+        .alert {
+            display: none;
+            margin-top: 1rem;
+        }
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin: 1rem 0;
+        }
+        .remember-me input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+        .forgot-password {
+            text-align: right;
+            margin-bottom: 1rem;
+        }
+        .forgot-password a {
+            color: #0d6efd;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+        .login-footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .login-footer a {
+            color: #0d6efd;
+            text-decoration: none;
+        }
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0d6efd;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .version-info {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .admin-settings {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5rem;
+            color: #6c757d;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .admin-settings:hover {
+            color: #0d6efd;
+        }
+        .admin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .admin-modal-content {
+            position: relative;
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .close-admin-modal {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+        }
+        .close-admin-modal:hover {
+            color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-settings" onclick="showAdminModal()">
+        <i class="fas fa-cog"></i>
+    </div>
+
+    <div id="adminModal" class="admin-modal">
+        <div class="admin-modal-content">
+            <span class="close-admin-modal" onclick="closeAdminModal()">&times;</span>
+            <div class="login-header">
+                <h2>Вход для администратора</h2>
+            </div>
+            <div class="alert alert-danger" id="adminErrorAlert" role="alert" style="display: none;">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span id="adminErrorMessage"></span>
+            </div>
+            <form id="adminLoginForm" onsubmit="return handleAdminLogin(event)">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="adminUsername" placeholder="Логин" required>
+                    <label for="adminUsername">Логин</label>
+                </div>
+                <div class="form-floating position-relative">
+                    <input type="password" class="form-control" id="adminPassword" placeholder="Пароль" required>
+                    <label for="adminPassword">Пароль</label>
+                    <i class="fas fa-eye password-toggle" onclick="toggleAdminPassword()"></i>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <span class="loading-spinner" id="adminLoginSpinner"></span>
+                    <span>Войти</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="login-container">
+        <div class="login-header">
+            <img src="images/logo.png" class="mb-3">
+            <h2>Вход в систему</h2>
+            <p class="text-muted">Система учета цитологических исследований</p>
+        </div>
+
+        <div class="alert alert-danger" id="errorAlert" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span id="errorMessage"></span>
+        </div>
+
+        <form id="loginForm" onsubmit="return handleLogin(event)">
+            <div class="form-floating">
+                <input type="text" class="form-control" id="username" placeholder="Логин" required>
+                <label for="username">Логин</label>
+            </div>
+
+            <div class="form-floating position-relative">
+                <input type="password" class="form-control" id="password" placeholder="Пароль" required>
+                <label for="password">Пароль</label>
+                <i class="fas fa-eye password-toggle" onclick="togglePassword()"></i>
+            </div>
+
+            <div class="remember-me">
+                <input type="checkbox" class="form-check-input" id="rememberMe">
+                <label class="form-check-label" for="rememberMe">Запомнить меня</label>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <span class="loading-spinner" id="loginSpinner"></span>
+                <span>Войти</span>
+            </button>
+        </form>
+    </div>
+
+    <div class="version-info">
+        Версия 1.0.0
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Функция для переключения видимости пароля
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.querySelector('.password-toggle');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Функция для отображения ошибки
+        function showError(message) {
+            const errorAlert = document.getElementById('errorAlert');
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorAlert.style.display = 'block';
+            setTimeout(() => {
+                errorAlert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Функция для показа формы восстановления пароля
+        function showForgotPassword() {
+            // Здесь можно добавить логику для показа формы восстановления пароля
+            alert('Функция восстановления пароля находится в разработке');
+        }
+
+        // Функция для показа формы регистрации
+        function showRegistration() {
+            // Здесь можно добавить логику для показа формы регистрации
+            alert('Функция регистрации находится в разработке');
+        }
+
+        // Функция для обработки входа
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            const loginSpinner = document.getElementById('loginSpinner');
+            const submitButton = event.target.querySelector('button[type="submit"]');
+
+            // Показываем спиннер и блокируем кнопку
+            loginSpinner.style.display = 'inline-block';
+            submitButton.disabled = true;
+
+            try {
+                // Проверяем валидность данных
+                if (!username || !password) {
+                    throw new Error('Пожалуйста, заполните все поля');
+                }
+
+                // Проверяем длину пароля
+                if (password.length < 6) {
+                    throw new Error('Пароль должен содержать минимум 6 символов');
+                }
+
+                // Проверяем наличие специальных символов в логине
+                if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                    throw new Error('Логин может содержать только буквы, цифры и знак подчеркивания');
+                }
+
+                // Вызываем функцию авторизации
+                const result = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: username, password: password })
+                }).then(r => r.json());
+
+                if (result.status === "success") {
+                    // Сохраняем данные в localStorage если выбрано "Запомнить меня"
+                    if (rememberMe) {
+                        localStorage.setItem('username', username);
+                        localStorage.setItem('rememberMe', 'true');
+                    } else {
+                        localStorage.removeItem('username');
+                        localStorage.removeItem('rememberMe');
+                    }
+
+                    // Сохраняем ФИО сотрудника и статус в localStorage
+                    localStorage.setItem('userFIO', result.fio);
+                    localStorage.setItem('userStatus', result.user_status);
+
+                    // Перенаправляем в зависимости от статуса пользователя
+                    if (result.user_status === 'admin') {
+                        localStorage.setItem('isAdmin', 'true');
+                        window.location.href = 'admin.html';
+                    } else {
+                        localStorage.removeItem('isAdmin'); // Убираем флаг админа для обычных пользователей
+                        window.location.href = 'home.html';
+                    }
+                } else {
+                    throw new Error(result.message || 'Ошибка авторизации');
+                }
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                // Скрываем спиннер и разблокируем кнопку
+                loginSpinner.style.display = 'none';
+                submitButton.disabled = false;
+            }
+
+            return false;
+        }
+
+        // Проверяем сохраненные данные при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedUsername = localStorage.getItem('username');
+            const rememberMe = localStorage.getItem('rememberMe');
+
+            if (savedUsername && rememberMe === 'true') {
+                document.getElementById('username').value = savedUsername;
+                document.getElementById('rememberMe').checked = true;
+            }
+        });
+
+        // Добавляем обработку клавиши Enter
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Функции для работы с модальным окном администратора
+        function showAdminModal() {
+            document.getElementById('adminModal').style.display = 'block';
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').style.display = 'none';
+        }
+
+        function toggleAdminPassword() {
+            const passwordInput = document.getElementById('adminPassword');
+            const toggleIcon = document.querySelector('#adminModal .password-toggle');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        function showAdminError(message) {
+            const errorAlert = document.getElementById('adminErrorAlert');
+            const errorMessage = document.getElementById('adminErrorMessage');
+            errorMessage.textContent = message;
+            errorAlert.style.display = 'block';
+            setTimeout(() => {
+                errorAlert.style.display = 'none';
+            }, 5000);
+        }
+
+        async function handleAdminLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            const loginSpinner = document.getElementById('adminLoginSpinner');
+            const submitButton = event.target.querySelector('button[type="submit"]');
+
+            loginSpinner.style.display = 'inline-block';
+            submitButton.disabled = true;
+
+            try {
+                // Проверяем валидность данных
+                if (!username || !password) {
+                    throw new Error('Пожалуйста, заполните все поля');
+                }
+
+                // Вызываем функцию авторизации
+                const result = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: username, password: password })
+                }).then(r => r.json());
+
+                if (result.status === "success") {
+                    // Проверяем, является ли пользователь администратором
+                    if (result.user_status === 'admin') {
+                        // Сохраняем информацию о том, что это администратор
+                        localStorage.setItem('isAdmin', 'true');
+                        localStorage.setItem('userFIO', result.fio);
+                        localStorage.setItem('userStatus', result.user_status);
+                        // Перенаправляем на страницу администратора
+                        window.location.replace('admin.html');
+                    } else {
+                        throw new Error('Доступ запрещен. Требуются права администратора.');
+                    }
+                } else {
+                    throw new Error(result.message || 'Неверный логин или пароль администратора');
+                }
+            } catch (error) {
+                showAdminError(error.message);
+            } finally {
+                loginSpinner.style.display = 'none';
+                submitButton.disabled = false;
+            }
+
+            return false;
+        }
+
+        // Закрытие модального окна при клике вне его
+        window.onclick = function(event) {
+            const modal = document.getElementById('adminModal');
+            if (event.target === modal) {
+                closeAdminModal();
+            }
+        }
+    </script>
+</body>
+</html>

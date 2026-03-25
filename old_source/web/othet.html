@@ -1,0 +1,1177 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Система отчетов</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="js/auth.js"></script>
+<style>
+:root {
+--primary-blue: #3b82f6;
+--primary-blue-dark: #2563eb;
+--primary-purple: #8b5cf6;
+--primary-purple-dark: #7c3aed;
+--secondary-indigo: #6366f1;
+--secondary-indigo-dark: #4f46e5;
+--accent-cyan: #06b6d4;
+--accent-cyan-dark: #0891b2;
+--background-light: #f1f5ff;
+--background-primary: #e0e7ff;
+--background-secondary: #f3f4f6;
+--background-card: #f8fafc;
+--background-gradient: linear-gradient(135deg, #f1f5ff 0%, #e0e7ff 50%, #f3f4f6 100%);
+--background-card-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5ff 100%);
+--text-primary: #1e293b;
+--text-secondary: #475569;
+--text-muted: #64748b;
+--text-white: #ffffff;
+--border-light: #e2e8f0;
+--border-medium: #cbd5e1;
+--border-accent: #c7d2fe;
+--shadow-soft: 0 4px 20px rgba(59, 130, 246, 0.15);
+--shadow-medium: 0 8px 30px rgba(59, 130, 246, 0.2);
+--shadow-strong: 0 20px 40px rgba(59, 130, 246, 0.3);
+--border-radius: 16px;
+--border-radius-small: 12px;
+--transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+--primary-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+--primary-gradient-hover: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+--success-gradient: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+--success-gradient-hover: linear-gradient(135deg, #059669 0%, #0891b2 100%);
+--accent-gradient: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+--accent-gradient-hover: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+--glass-effect: rgba(248, 250, 252, 0.8);
+--backdrop-blur: blur(10px);
+--border-color: rgba(99, 102, 241, 0.2);
+}
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: var(--background-gradient);
+min-height: 100vh;
+color: var(--text-primary);
+padding: 20px;
+}
+.container {
+margin: 0 auto;
+}
+.header {
+text-align: center;
+margin-bottom: 40px;
+}
+.header h1 {
+font-size: 3rem;
+font-weight: 700;
+background: var(--primary-gradient);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+margin-bottom: 10px;
+text-shadow: var(--shadow-soft);
+}
+.header p {
+font-size: 1.2rem;
+color: var(--text-secondary);
+font-weight: 500;
+}
+.form-container {
+background: var(--background-card-gradient);
+border-radius: var(--border-radius);
+padding: 40px;
+box-shadow: var(--shadow-medium);
+border: 2px solid var(--border-accent);
+margin-bottom: 40px;
+backdrop-filter: var(--backdrop-blur);
+}
+.form-row {
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+gap: 30px;
+margin-bottom: 30px;
+}
+.form-group {
+display: flex;
+flex-direction: column;
+}
+.form-group label {
+font-size: 1.1rem;
+font-weight: 600;
+color: var(--text-primary);
+margin-bottom: 12px;
+background: var(--secondary-gradient);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+}
+.form-group select,
+.form-group input {
+padding: 16px 20px;
+border: 2px solid var(--border-accent);
+border-radius: var(--border-radius-small);
+font-size: 1rem;
+background: var(--glass-effect);
+color: var(--text-primary);
+transition: var(--transition);
+backdrop-filter: var(--backdrop-blur);
+}
+.form-group select:focus,
+.form-group input:focus {
+outline: none;
+border-color: var(--primary-blue);
+box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+transform: translateY(-2px);
+}
+.form-group select:hover,
+.form-group input:hover {
+border-color: var(--secondary-indigo);
+transform: translateY(-1px);
+}
+.custom-period {
+display: none;
+margin-top: 15px;
+}
+.custom-period.show {
+display: block;
+animation: slideDown 0.3s ease-out;
+}
+@keyframes slideDown {
+from {
+opacity: 0;
+transform: translateY(-10px);
+}
+to {
+opacity: 1;
+transform: translateY(0);
+}
+}
+.date-inputs {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 15px;
+}
+.generate-btn {
+background: var(--primary-gradient);
+color: var(--text-white);
+border: none;
+padding: 18px 40px;
+font-size: 1.2rem;
+font-weight: 600;
+border-radius: var(--border-radius-small);
+cursor: pointer;
+transition: var(--transition);
+box-shadow: var(--shadow-soft);
+text-transform: uppercase;
+letter-spacing: 1px;
+margin: 0 auto;
+display: block;
+}
+.generate-btn:hover {
+background: var(--primary-gradient-hover);
+transform: translateY(-3px);
+box-shadow: var(--shadow-strong);
+}
+#backButton:hover {
+background: var(--primary-gradient-hover);
+transform: translateY(-2px);
+box-shadow: var(--shadow-medium);
+}
+#backButton:active {
+transform: translateY(-1px);
+}
+.generate-btn:active {
+transform: translateY(-1px);
+}
+.report-table {
+display: none;
+background: var(--background-card-gradient);
+border-radius: var(--border-radius);
+padding: 30px;
+box-shadow: var(--shadow-medium);
+border: 2px solid var(--border-accent);
+backdrop-filter: var(--backdrop-blur);
+overflow-x: auto;
+}
+.report-table.show {
+display: block;
+}
+.report-actions {
+display: flex;
+gap: 15px;
+margin-top: 20px;
+justify-content: center;
+}
+.action-btn {
+padding: 12px 24px;
+border: none;
+border-radius: var(--border-radius-small);
+font-weight: 600;
+cursor: pointer;
+transition: var(--transition);
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.export-btn {
+background: var(--success-gradient);
+color: var(--text-white);
+}
+.export-btn:hover {
+background: var(--success-gradient-hover);
+transform: translateY(-2px);
+}
+.print-btn {
+background: var(--accent-gradient);
+color: var(--text-white);
+}
+.print-btn:hover {
+background: var(--accent-gradient-hover);
+transform: translateY(-2px);
+}
+table {
+width: 100%;
+border-collapse: collapse;
+border: 1px solid var(--border-medium);
+font-family: Arial, sans-serif;
+}
+.gap { height: 10px; }
+#histology-journal-data td { line-height: 1.5; }
+#histology-journal-data td:first-child { padding-top: 43px; }
+#histology-journal-data td:nth-child(2), #histology-journal-data td:nth-child(3) { padding-top: 8px; }
+th {
+background: #f0f0f0;
+color: var(--text-primary);
+padding: 12px 15px;
+text-align: left;
+font-weight: 600;
+border: 1px solid var(--border-medium);
+position: sticky;
+top: 0;
+z-index: 1;
+white-space: normal;
+word-break: break-word;
+font-size: 0.85rem;
+min-width: 40px;
+max-width: 90px;
+}
+td {
+padding: 10px 15px;
+border: 1px solid var(--border-medium);
+background: white;
+text-align: left;
+}
+.align-right {
+text-align: right;
+}
+tr:nth-child(even) {
+background: #f9f9f9;
+}
+tr:hover td {
+background: #f5f5f5;
+}
+@media print {
+body * {
+display: none !important;
+}
+}
+@media (max-width: 768px) {
+.form-row {
+grid-template-columns: 1fr;
+gap: 20px;
+}
+.date-inputs {
+grid-template-columns: 1fr;
+}
+.header h1 {
+font-size: 2rem;
+}
+.form-container {
+padding: 25px;
+}
+table {
+font-size: 0.9rem;
+}
+th, td {
+padding: 12px 8px;
+}
+}
+#cytology-data th, #cytology-data td {
+padding: 6px 4px;
+}
+.align-right {
+text-align: right;
+}
+tr:nth-child(even) {
+background-color: #f9f9f9;
+}
+tr:hover td {
+background: #f5f5f5;
+}
+th {
+background-color: #e0e0e0;
+font-weight: bold;
+white-space: normal;
+word-break: break-word;
+min-width: 30px;
+max-width: 80px;
+text-align: left;
+vertical-align: middle;
+}
+.total-row {
+font-weight: bold;
+background-color: #f0f0f0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+<button id="backButton" style="
+background: var(--primary-gradient);
+color: var(--text-white);
+border: none;
+padding: 12px 24px;
+font-size: 1rem;
+font-weight: 600;
+border-radius: var(--border-radius-small);
+cursor: pointer;
+transition: var(--transition);
+box-shadow: var(--shadow-soft);
+text-transform: uppercase;
+letter-spacing: 1px;
+">← Назад</button>
+<div style="text-align: center; flex-grow: 1;">
+<h1>Система отчетов</h1>
+<p>Генерация медицинских отчетов и аналитики</p>
+</div>
+<div style="width: 120px;"></div>
+</div>
+</div>
+<div class="form-container">
+<div class="form-row">
+<div class="form-group">
+<label for="research-type">Тип исследования:</label>
+<select id="research-type">
+<option value="">Выберите тип исследования</option>
+<option value="localization">Локализация</option>
+<option value="cytology">Цитология</option>
+<option value="profosmotr">Профосмотр</option>
+<option value="profosmotr_liquid">Профосмотр жидкостная</option>
+<option value="profosmotr_traditional">Профосмотр традиционная</option>
+<option value="histology_journal">Журнал расхождений (гистология)</option>
+</select>
+</div>
+<div class="form-group">
+<label for="report-period">Период отчета:</label>
+<select id="report-period">
+<option value="">Выберите период</option>
+<option value="1month">1 месяц</option>
+<option value="6months">6 месяцев</option>
+<option value="custom">Произвольный выбор</option>
+</select>
+<div class="custom-period" id="custom-period">
+<div class="date-inputs">
+<div class="form-group">
+<label for="date-from">Дата от:</label>
+<input type="date" id="date-from">
+</div>
+<div class="form-group">
+<label for="date-to">Дата до:</label>
+<input type="date" id="date-to">
+</div>
+</div>
+</div>
+</div>
+<div class="form-group" id="study-type-group" style="display: none;">
+<label for="study-type">Тип исследования:</label>
+<select id="study-type">
+<option value="">Выберите тип исследования</option>
+</select>
+</div>
+</div>
+<button class="generate-btn" onclick="generateReport()">Сформировать отчет</button>
+</div>
+
+<!-- Таблица: Локализация -->
+<div class="report-table" id="localization-table">
+<h2>Локализация</h2>
+<div class="report-period" id="localization-period" style="text-align: center; margin-bottom: 20px; color: var(--text-secondary); font-size: 1.1rem;"></div>
+<table id="reportTable">
+<thead>
+<tr>
+<th>Локализация</th>
+<th>Количество стеклопрепаратов</th>
+<th>Заключение совпало с цитологическим</th>
+<th>КООД</th>
+<th>Другие ЛПУ</th>
+<th>Срочность</th>
+<th>Подтвержден гистологически</th>
+<th>Всего</th>
+<th>Доброкачественная</th>
+<th>Пограничная</th>
+<th>Злокачественная</th>
+<th>Подозрение на злокачественность</th>
+<th>Дисплазии</th>
+<th>Гиперплазия</th>
+<th>Прочее</th>
+<th>Без особенностей</th>
+<th>Материал взят плохо</th>
+</tr>
+</thead>
+<tbody id="reportTableBody"></tbody>
+</table>
+<div class="report-actions">
+<button class="action-btn export-btn" onclick="exportToExcel('localization-table')">Экспорт в Excel</button>
+<button class="action-btn print-btn" onclick="printReport('localization-table')">Печать</button>
+</div>
+</div>
+
+<!-- Таблица: Цитология -->
+<div class="report-table" id="cytology-table">
+<h2>Услуги цитологической лаборатории</h2>
+<div class="report-period" id="cytology-period" style="text-align: center; margin-bottom: 20px; color: var(--text-secondary); font-size: 1.1rem;"></div>
+<table id="cytology-data">
+<thead>
+<tr class="header-row">
+<th rowspan="2">Название услуги</th>
+<th colspan="12">КООД</th>
+<th rowspan="2">Итого КООД</th>
+<th colspan="2">Другие ЛПУ</th>
+<th rowspan="2">Итого оказанных услуг</th>
+<th rowspan="2">в т.ч для поликлиник</th>
+</tr>
+<tr class="header-row">
+<th>Поликлиника</th>
+<th>Эндоскопическое</th>
+<th>Радиологии</th>
+<th>Дневной стационар химиотерапии</th>
+<th>Операционный блок</th>
+<th>Абдоминальной онкологии</th>
+<th>Химиотерапии</th>
+<th>Торакальной хирургии</th>
+<th>Гинекологии</th>
+<th>Молочной железы и кожи</th>
+<th>Опухолей</th>
+<th>Всего</th>
+<th>Поликлиника</th>
+<th>Стационар</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+<div class="report-actions">
+<button class="action-btn export-btn" onclick="exportToExcel('cytology-table')">Экспорт в Excel</button>
+<button class="action-btn print-btn" onclick="printReport('cytology-table')">Печать</button>
+</div>
+</div>
+
+<!-- Таблица: Профосмотр (ОБЩИЙ) -->
+<div class="report-table" id="profosmotr-table">
+<h2>Профосмотр</h2>
+<div class="report-period" id="profosmotr-period" style="text-align: center; margin-bottom: 20px; color: var(--text-secondary); font-size: 1.1rem;"></div>
+<table id="profosmotr-data">
+<thead>
+<tr>
+<th rowspan="2">Лечебные учреждения</th>
+<th rowspan="2">Стекол</th>
+<th colspan="2">Выявлено патологий</th>
+<th rowspan="2">Жидкостная</th>
+<th rowspan="2">Традиционная</th>
+<th rowspan="2">Всего</th>
+<th rowspan="2">NILM</th>
+<th rowspan="2">ASCUS</th>
+<th rowspan="2">ASC-H</th>
+<th rowspan="2">CIN I</th>
+<th rowspan="2">CIN II</th>
+<th rowspan="2">CIN III</th>
+<th rowspan="2">Подозр. на рак</th>
+<th rowspan="2">Cr(ccs)</th>
+<th rowspan="2">Ат. кл. хл. эп. ан (AGC)</th>
+<th rowspan="2">Подозр. на опух.</th>
+<th rowspan="2">Аденокарцинома</th>
+<th rowspan="2">Прочие</th>
+</tr>
+<tr>
+<th>Врачами</th>
+<th>Лаборантами</th>
+</tr>
+</thead>
+<tbody id="profosmotrTableBody"></tbody>
+</table>
+<div class="report-actions">
+<button class="action-btn export-btn" onclick="exportToExcel('profosmotr-table')">Экспорт в Excel</button>
+<button class="action-btn print-btn" onclick="printReport('profosmotr-table')">Печать</button>
+</div>
+</div>
+
+<!-- Таблица: Профосмотр ЖИДКОСТНАЯ (без колонки "Традиционная") -->
+<div class="report-table" id="profosmotr-liquid-table">
+<h2>Профосмотр жидкостная</h2>
+<div class="report-period" id="profosmotr-liquid-period" style="text-align: center; margin-bottom: 20px; color: var(--text-secondary); font-size: 1.1rem;"></div>
+<table id="profosmotr-liquid-data">
+<thead>
+<tr>
+<th rowspan="2">Лечебные учреждения</th>
+<th rowspan="2">Стекол</th>
+<th colspan="2">Выявлено патологий</th>
+<th rowspan="2">Жидкостная</th>
+<th rowspan="2">Всего</th>
+<th rowspan="2">NILM</th>
+<th rowspan="2">ASCUS</th>
+<th rowspan="2">ASC-H</th>
+<th rowspan="2">CIN I</th>
+<th rowspan="2">CIN II</th>
+<th rowspan="2">CIN III</th>
+<th rowspan="2">Подозр. на рак</th>
+<th rowspan="2">Cr(ccs)</th>
+<th rowspan="2">Ат. кл. хл. эп. ан (AGC)</th>
+<th rowspan="2">Подозр. на опух.</th>
+<th rowspan="2">Аденокарцинома</th>
+<th rowspan="2">Прочие</th>
+</tr>
+<tr>
+<th>Врачами</th>
+<th>Лаборантами</th>
+</tr>
+</thead>
+<tbody id="profosmotrLiquidTableBody"></tbody>
+</table>
+<div class="report-actions">
+<button class="action-btn export-btn" onclick="exportToExcel('profosmotr-liquid-table')">Экспорт в Excel</button>
+<button class="action-btn print-btn" onclick="printReport('profosmotr-liquid-table')">Печать</button>
+</div>
+</div>
+
+<!-- Таблица: Профосмотр ТРАДИЦИОННАЯ (без колонки "Жидкостная") -->
+<div class="report-table" id="profosmotr-traditional-table">
+<h2>Профосмотр традиционная</h2>
+<div class="report-period" id="profosmotr-traditional-period" style="text-align: center; margin-bottom: 20px; color: var(--text-secondary); font-size: 1.1rem;"></div>
+<table id="profosmotr-traditional-data">
+<thead>
+<tr>
+<th rowspan="2">Лечебные учреждения</th>
+<th rowspan="2">Стекол</th>
+<th colspan="2">Выявлено патологий</th>
+<th rowspan="2">Традиционная</th>
+<th rowspan="2">Всего</th>
+<th rowspan="2">NILM</th>
+<th rowspan="2">ASCUS</th>
+<th rowspan="2">ASC-H</th>
+<th rowspan="2">CIN I</th>
+<th rowspan="2">CIN II</th>
+<th rowspan="2">CIN III</th>
+<th rowspan="2">Подозр. на рак</th>
+<th rowspan="2">Cr(ccs)</th>
+<th rowspan="2">Ат. кл. хл. эп. ан (AGC)</th>
+<th rowspan="2">Подозр. на опух.</th>
+<th rowspan="2">Аденокарцинома</th>
+<th rowspan="2">Прочие</th>
+</tr>
+<tr>
+<th>Врачами</th>
+<th>Лаборантами</th>
+</tr>
+</thead>
+<tbody id="profosmotrTraditionalTableBody"></tbody>
+</table>
+<div class="report-actions">
+<button class="action-btn export-btn" onclick="exportToExcel('profosmotr-traditional-table')">Экспорт в Excel</button>
+<button class="action-btn print-btn" onclick="printReport('profosmotr-traditional-table')">Печать</button>
+</div>
+</div>
+
+<!-- Таблица: Журнал расхождений -->
+<div class="report-table" id="histology-journal-table">
+<h2>Журнал расхождений (гистология)</h2>
+<div class="report-period" id="histology-journal-period" style="text-align: center; margin-bottom: 20px; color: var(--text-secondary); font-size: 1.1rem;"></div>
+<table id="histology-journal-data">
+<thead>
+<tr>
+<th>Номер</th>
+<th>Цитологическое заключение</th>
+<th>Гистологическое заключение</th>
+</tr>
+</thead>
+<tbody id="histologyJournalTableBody"></tbody>
+</table>
+<div class="report-actions">
+<button class="action-btn export-btn" onclick="exportToExcel('histology-journal-table')">Экспорт в Excel</button>
+<button class="action-btn print-btn" onclick="printReport('histology-journal-table')">Печать</button>
+</div>
+</div>
+</div>
+
+<script>
+// Initialize event listeners
+document.getElementById('report-period').addEventListener('change', function() {
+const customPeriod = document.getElementById('custom-period');
+customPeriod.classList.toggle('show', this.value === 'custom');
+});
+
+// Show/hide study type for profosmotr only
+(function initStudyTypeControl() {
+const researchTypeEl = document.getElementById('research-type');
+const groupEl = document.getElementById('study-type-group');
+const selectEl = document.getElementById('study-type');
+let loaded = false;
+
+async function loadServiceTypesOnce() {
+if (loaded) return;
+try {
+const resp = await fetch('/api/get_service_types');
+const data = await resp.json();
+if (data.status === 'success') {
+data.data.forEach(item => {
+const opt = document.createElement('option');
+opt.value = item.id;
+opt.textContent = item.name;
+selectEl.appendChild(opt);
+});
+loaded = true;
+}
+} catch (e) {
+console.error('Ошибка загрузки типов исследования:', e);
+}
+}
+
+researchTypeEl.addEventListener('change', () => {
+const show = researchTypeEl.value === 'profosmotr';
+groupEl.style.display = show ? '' : 'none';
+if (!show) {
+selectEl.value = '';
+} else {
+loadServiceTypesOnce();
+}
+});
+})();
+
+document.getElementById('backButton').addEventListener('click', function() {
+window.location.href = 'home.html';
+});
+
+function getDateRange() {
+const reportPeriod = document.getElementById('report-period').value;
+const today = new Date();
+let from, to;
+if (reportPeriod === 'custom') {
+from = document.getElementById('date-from').value;
+to = document.getElementById('date-to').value;
+} else if (reportPeriod === '1month') {
+to = today.toISOString().split('T')[0];
+const prevMonth = new Date(today);
+prevMonth.setMonth(today.getMonth() - 1);
+from = prevMonth.toISOString().split('T')[0];
+} else if (reportPeriod === '6months') {
+to = today.toISOString().split('T')[0];
+const prev6 = new Date(today);
+prev6.setMonth(today.getMonth() - 6);
+from = prev6.toISOString().split('T')[0];
+}
+return {from, to};
+}
+
+async function generateReport() {
+const researchType = document.getElementById('research-type').value;
+const dateRange = getDateRange();
+if (!researchType) {
+alert("Выберите тип исследования!");
+return;
+}
+if (!dateRange.from || !dateRange.to) {
+alert("Укажите корректный период!");
+return;
+}
+try {
+const formData = new FormData();
+formData.append('study_type', researchType);
+formData.append('date_from', dateRange.from);
+formData.append('date_to', dateRange.to);
+if (researchType === 'profosmotr') {
+const subtype = document.getElementById('study-type').value;
+if (subtype) {
+formData.append('profosmotr_prof', subtype);
+}
+}
+const response = await fetch('/api/generate_report', {
+method: 'POST',
+body: formData
+});
+if (!response.ok) {
+throw new Error(`HTTP error! status: ${response.status}`);
+}
+const result = await response.json();
+if (result.status === "success" && result.data) {
+if (researchType === 'localization') {
+displayLocalizationReport(result.data);
+document.getElementById('localization-table').classList.add('show');
+document.getElementById('cytology-table').classList.remove('show');
+document.getElementById('profosmotr-table').classList.remove('show');
+document.getElementById('profosmotr-liquid-table').classList.remove('show');
+document.getElementById('profosmotr-traditional-table').classList.remove('show');
+document.getElementById('histology-journal-table').classList.remove('show');
+} else if (researchType === 'cytology') {
+displayCytologyReport(result.data);
+document.getElementById('cytology-table').classList.add('show');
+document.getElementById('localization-table').classList.remove('show');
+document.getElementById('profosmotr-table').classList.remove('show');
+document.getElementById('profosmotr-liquid-table').classList.remove('show');
+document.getElementById('profosmotr-traditional-table').classList.remove('show');
+document.getElementById('histology-journal-table').classList.remove('show');
+} else if (researchType === 'profosmotr') {
+displayProfosmotrReport(result.data);
+document.getElementById('profosmotr-table').classList.add('show');
+document.getElementById('localization-table').classList.remove('show');
+document.getElementById('cytology-table').classList.remove('show');
+document.getElementById('profosmotr-liquid-table').classList.remove('show');
+document.getElementById('profosmotr-traditional-table').classList.remove('show');
+document.getElementById('histology-journal-table').classList.remove('show');
+} else if (researchType === 'profosmotr_liquid') {
+displayProfosmotrLiquidReport(result.data);
+document.getElementById('profosmotr-liquid-table').classList.add('show');
+document.getElementById('localization-table').classList.remove('show');
+document.getElementById('cytology-table').classList.remove('show');
+document.getElementById('profosmotr-table').classList.remove('show');
+document.getElementById('profosmotr-traditional-table').classList.remove('show');
+document.getElementById('histology-journal-table').classList.remove('show');
+} else if (researchType === 'profosmotr_traditional') {
+displayProfosmotrTraditionalReport(result.data);
+document.getElementById('profosmotr-traditional-table').classList.add('show');
+document.getElementById('localization-table').classList.remove('show');
+document.getElementById('cytology-table').classList.remove('show');
+document.getElementById('profosmotr-table').classList.remove('show');
+document.getElementById('profosmotr-liquid-table').classList.remove('show');
+document.getElementById('histology-journal-table').classList.remove('show');
+} else if (researchType === 'histology_journal') {
+displayHistologyJournal(result.data);
+document.getElementById('histology-journal-table').classList.add('show');
+document.getElementById('localization-table').classList.remove('show');
+document.getElementById('cytology-table').classList.remove('show');
+document.getElementById('profosmotr-table').classList.remove('show');
+document.getElementById('profosmotr-liquid-table').classList.remove('show');
+document.getElementById('profosmotr-traditional-table').classList.remove('show');
+}
+} else {
+alert('Нет данных для выбранного периода');
+}
+} catch (e) {
+alert('Ошибка при получении отчета: ' + e);
+}
+}
+
+function displayLocalizationReport(data) {
+const tableBody = document.getElementById('reportTableBody');
+const periodDisplay = document.getElementById('localization-period');
+const dateRange = getDateRange();
+const formatDate = (dateStr) => {
+const date = new Date(dateStr);
+return date.toLocaleDateString('ru-RU', {
+day: '2-digit',
+month: '2-digit',
+year: 'numeric'
+});
+};
+if (dateRange.from && dateRange.to) {
+periodDisplay.textContent = `Период: с ${formatDate(dateRange.from)} по ${formatDate(dateRange.to)}`;
+}
+tableBody.innerHTML = '';
+if (!data || data.length === 0) {
+const tr = document.createElement('tr');
+tr.innerHTML = '<td colspan="17" style="text-align: center;">Нет данных для отображения</td>';
+tableBody.appendChild(tr);
+} else {
+data.forEach(row => {
+const tr = document.createElement('tr');
+tr.innerHTML = `
+<td>${row.localization || ''}</td>
+<td>${row.slides_count && row.slides_count !== 0 ? row.slides_count : '-'}</td>
+<td>${row.conclusion && row.conclusion !== 0 ? row.conclusion : '-'}</td>
+<td>${row.medical_organization && row.medical_organization !== 0 ? row.medical_organization : '-'}</td>
+<td>${row.nemedical_organization && row.nemedical_organization !== 0 ? row.nemedical_organization : '-'}</td>
+<td>${row.urgency && row.urgency !== 0 ? row.urgency : '-'}</td>
+<td>${row.histologically && row.histologically !== 0 ? row.histologically : '-'}</td>
+<td>${row.count && row.count !== 0 ? row.count : '-'}</td>
+<td>${row.comment_dobro && row.comment_dobro !== 0 ? row.comment_dobro : '-'}</td>
+<td>${row.comment_pog && row.comment_pog !== 0 ? row.comment_pog : '-'}</td>
+<td>${row.comment_zloc && row.comment_zloc !== 0 ? row.comment_zloc : '-'}</td>
+<td>${row.comment_podozr && row.comment_podozr !== 0 ? row.comment_podozr : '-'}</td>
+<td>${row.comment_displ && row.comment_displ !== 0 ? row.comment_displ : '-'}</td>
+<td>${row.comment_giper && row.comment_giper !== 0 ? row.comment_giper : '-'}</td>
+<td>${row.comment_proch && row.comment_proch !== 0 ? row.comment_proch : '-'}</td>
+<td>${row.comment_bez_osob && row.comment_bez_osob !== 0 ? row.comment_bez_osob : '-'}</td>
+<td>${row.comment_material && row.comment_material !== 0 ? row.comment_material : '-'}</td>
+`;
+tableBody.appendChild(tr);
+});
+}
+}
+
+function displayCytologyReport(data) {
+const table = document.getElementById('cytology-data');
+const tbody = table.querySelector('tbody');
+const periodDisplay = document.getElementById('cytology-period');
+const dateRange = getDateRange();
+const formatDate = (dateStr) => {
+const date = new Date(dateStr);
+return date.toLocaleDateString('ru-RU', {
+day: '2-digit',
+month: '2-digit',
+year: 'numeric'
+});
+};
+if (dateRange.from && dateRange.to) {
+periodDisplay.textContent = `Период: с ${formatDate(dateRange.from)} по ${formatDate(dateRange.to)}`;
+}
+tbody.innerHTML = '';
+if (!data || data.length === 0) {
+const tr = document.createElement('tr');
+tr.innerHTML = '<td colspan="18" style="text-align: center;">Нет данных для отображения</td>';
+tbody.appendChild(tr);
+return;
+}
+// ... (остальной код displayCytologyReport без изменений) ...
+data.forEach(row => {
+if (row.service !== 'Итог по профосмотрам') {
+const tr = document.createElement('tr');
+tr.className = row.service && row.service.includes('Итог') ? 'total-row' : '';
+const departmentsSum = (
+(Number(row.kood.endoscopic) || 0) +
+(Number(row.kood.radiology) || 0) +
+(Number(row.kood.dayChemotherapy) || 0) +
+(Number(row.kood.surgical) || 0) +
+(Number(row.kood.abdominal) || 0) +
+(Number(row.kood.chemotherapy) || 0) +
+(Number(row.kood.thoracic) || 0) +
+(Number(row.kood.gynecology) || 0) +
+(Number(row.kood.breastSkin) || 0) +
+(Number(row.kood.tumors) || 0)
+);
+const totalServices = (
+(Number(row.kood.total) || 0) +
+(Number(row.otherLpu.polyclinic) || 0) +
+(Number(row.otherLpu.stationary) || 0)
+);
+const totalPolyclinicServices = (
+(Number(row.kood.polyclinic) || 0) +
+(Number(row.otherLpu.polyclinic) || 0)
+);
+tr.innerHTML = `
+<td>${row.service || ''}</td>
+<td class="align-right">${row.kood.polyclinic && row.kood.polyclinic !== 0 ? row.kood.polyclinic : '-'}</td>
+<td class="align-right">${row.kood.endoscopic && row.kood.endoscopic !== 0 ? row.kood.endoscopic : '-'}</td>
+<td class="align-right">${row.kood.radiology && row.kood.radiology !== 0 ? row.kood.radiology : '-'}</td>
+<td class="align-right">${row.kood.dayChemotherapy && row.kood.dayChemotherapy !== 0 ? row.kood.dayChemotherapy : '-'}</td>
+<td class="align-right">${row.kood.surgical && row.kood.surgical !== 0 ? row.kood.surgical : '-'}</td>
+<td class="align-right">${row.kood.abdominal && row.kood.abdominal !== 0 ? row.kood.abdominal : '-'}</td>
+<td class="align-right">${row.kood.chemotherapy && row.kood.chemotherapy !== 0 ? row.kood.chemotherapy : '-'}</td>
+<td class="align-right">${row.kood.thoracic && row.kood.thoracic !== 0 ? row.kood.thoracic : '-'}</td>
+<td class="align-right">${row.kood.gynecology && row.kood.gynecology !== 0 ? row.kood.gynecology : '-'}</td>
+<td class="align-right">${row.kood.breastSkin && row.kood.breastSkin !== 0 ? row.kood.breastSkin : '-'}</td>
+<td class="align-right">${row.kood.tumors && row.kood.tumors !== 0 ? row.kood.tumors : '-'}</td>
+<td class="align-right">${departmentsSum !== 0 ? departmentsSum : '-'}</td>
+<td class="align-right">${row.kood.total && row.kood.total !== 0 ? row.kood.total : '-'}</td>
+<td class="align-right">${row.otherLpu.polyclinic && row.otherLpu.polyclinic !== 0 ? row.otherLpu.polyclinic : '-'}</td>
+<td class="align-right">${row.otherLpu.stationary && row.otherLpu.stationary !== 0 ? row.otherLpu.stationary : '-'}</td>
+<td class="align-right">${totalServices !== 0 ? totalServices : '-'}</td>
+<td class="align-right">${totalPolyclinicServices !== 0 ? totalPolyclinicServices : '-'}</td>
+`;
+tbody.appendChild(tr);
+}
+});
+// ... (остальной код без изменений) ...
+}
+
+function displayProfosmotrReport(data) {
+const tableBody = document.getElementById('profosmotrTableBody');
+const periodDisplay = document.getElementById('profosmotr-period');
+const dateRange = getDateRange();
+const formatDate = (dateStr) => {
+const date = new Date(dateStr);
+return date.toLocaleDateString('ru-RU', {
+day: '2-digit',
+month: '2-digit',
+year: 'numeric'
+});
+};
+if (dateRange.from && dateRange.to) {
+periodDisplay.textContent = `Период: с ${formatDate(dateRange.from)} по ${formatDate(dateRange.to)}`;
+}
+tableBody.innerHTML = '';
+if (!data || data.length === 0) {
+const tr = document.createElement('tr');
+tr.innerHTML = '<td colspan="19" style="text-align: center;">Нет данных для отображения</td>';
+tableBody.appendChild(tr);
+return;
+}
+data.forEach(row => {
+const tr = document.createElement('tr');
+const pathologiesByDoctors = row["Патологий_врачами"] !== undefined && row["Патологий_врачами"] !== null ? row["Патологий_врачами"] : 0;
+const total = (row["NILM"] || 0) + (row["ASCUS"] || 0) + (row["ASC-H"] || 0) + (row["CIN I"] || 0) +
+(row["CIN II"] || 0) + (row["CIN III"] || 0) + (row["Подозр. на рак"] || 0) +
+(row["Cr(ccs)"] || 0) + (row["Ат. кл. хл. эп. ан (AGC)"] || 0) +
+(row["Подозр. на опух."] || 0) + (row["Аденокарцинома"] || 0) + (row["Прочие"] || 0);
+const pathologiesByLabTechnicians = total - pathologiesByDoctors;
+tr.innerHTML = `
+<td>${row["Лечебные учреждения"] || ''}</td>
+<td>${row["Стекол"] !== undefined && row["Стекол"] !== null ? row["Стекол"] : '-'}</td>
+<td>${pathologiesByDoctors > 0 ? pathologiesByDoctors : '-'}</td>
+<td>${pathologiesByLabTechnicians > 0 ? pathologiesByLabTechnicians : '-'}</td>
+<td>${row["Жидкостная"] !== undefined && row["Жидкостная"] !== null ? row["Жидкостная"] : '-'}</td>
+<td>${row["Традиционная"] !== undefined && row["Традиционная"] !== null ? row["Традиционная"] : '-'}</td>
+<td>${total > 0 ? total : '-'}</td>
+<td>${row["NILM"] !== undefined && row["NILM"] !== null ? row["NILM"] : '-'}</td>
+<td>${row["ASCUS"] !== undefined && row["ASCUS"] !== null ? row["ASCUS"] : '-'}</td>
+<td>${row["ASC-H"] !== undefined && row["ASC-H"] !== null ? row["ASC-H"] : '-'}</td>
+<td>${row["CIN I"] !== undefined && row["CIN I"] !== null ? row["CIN I"] : '-'}</td>
+<td>${row["CIN II"] !== undefined && row["CIN II"] !== null ? row["CIN II"] : '-'}</td>
+<td>${row["CIN III"] !== undefined && row["CIN III"] !== null ? row["CIN III"] : '-'}</td>
+<td>${row["Подозр. на рак"] !== undefined && row["Подозр. на рак"] !== null ? row["Подозр. на рак"] : '-'}</td>
+<td>${row["Cr(ccs)"] !== undefined && row["Cr(ccs)"] !== null ? row["Cr(ccs)"] : '-'}</td>
+<td>${row["Ат. кл. хл. эп. ан (AGC)"] !== undefined && row["Ат. кл. хл. эп. ан (AGC)"] !== null ? row["Ат. кл. хл. эп. ан (AGC)"] : '-'}</td>
+<td>${row["Подозр. на опух."] !== undefined && row["Подозр. на опух."] !== null ? row["Подозр. на опух."] : '-'}</td>
+<td>${row["Аденокарцинома"] !== undefined && row["Аденокарцинома"] !== null ? row["Аденокарцинома"] : '-'}</td>
+<td>${row["Прочие"] !== undefined && row["Прочие"] !== null ? row["Прочие"] : '-'}</td>
+`;
+tableBody.appendChild(tr);
+});
+}
+
+function displayProfosmotrLiquidReport(data) {
+const tableBody = document.getElementById('profosmotrLiquidTableBody');
+const periodDisplay = document.getElementById('profosmotr-liquid-period');
+const dateRange = getDateRange();
+const formatDate = (dateStr) => {
+const date = new Date(dateStr);
+return date.toLocaleDateString('ru-RU', {
+day: '2-digit',
+month: '2-digit',
+year: 'numeric'
+});
+};
+if (dateRange.from && dateRange.to) {
+periodDisplay.textContent = `Период: с ${formatDate(dateRange.from)} по ${formatDate(dateRange.to)}`;
+}
+tableBody.innerHTML = '';
+if (!data || data.length === 0) {
+const tr = document.createElement('tr');
+tr.innerHTML = '<td colspan="18" style="text-align: center;">Нет данных для отображения</td>';
+tableBody.appendChild(tr);
+return;
+}
+data.forEach(row => {
+const tr = document.createElement('tr');
+const pathologiesByDoctors = row["Патологий_врачами"] !== undefined && row["Патологий_врачами"] !== null ? row["Патологий_врачами"] : 0;
+const total = (row["NILM"] || 0) + (row["ASCUS"] || 0) + (row["ASC-H"] || 0) + (row["CIN I"] || 0) +
+(row["CIN II"] || 0) + (row["CIN III"] || 0) + (row["Подозр. на рак"] || 0) +
+(row["Cr(ccs)"] || 0) + (row["Ат. кл. хл. эп. ан (AGC)"] || 0) +
+(row["Подозр. на опух."] || 0) + (row["Аденокарцинома"] || 0) + (row["Прочие"] || 0);
+const pathologiesByLabTechnicians = total - pathologiesByDoctors;
+tr.innerHTML = `
+<td>${row["Лечебные учреждения"] || ''}</td>
+<td>${row["Стекол"] !== undefined && row["Стекол"] !== null ? row["Стекол"] : '-'}</td>
+<td>${pathologiesByDoctors > 0 ? pathologiesByDoctors : '-'}</td>
+<td>${pathologiesByLabTechnicians > 0 ? pathologiesByLabTechnicians : '-'}</td>
+<td>${row["Жидкостная"] !== undefined && row["Жидкостная"] !== null ? row["Жидкостная"] : '-'}</td>
+<td>${total > 0 ? total : '-'}</td>
+<td>${row["NILM"] !== undefined && row["NILM"] !== null ? row["NILM"] : '-'}</td>
+<td>${row["ASCUS"] !== undefined && row["ASCUS"] !== null ? row["ASCUS"] : '-'}</td>
+<td>${row["ASC-H"] !== undefined && row["ASC-H"] !== null ? row["ASC-H"] : '-'}</td>
+<td>${row["CIN I"] !== undefined && row["CIN I"] !== null ? row["CIN I"] : '-'}</td>
+<td>${row["CIN II"] !== undefined && row["CIN II"] !== null ? row["CIN II"] : '-'}</td>
+<td>${row["CIN III"] !== undefined && row["CIN III"] !== null ? row["CIN III"] : '-'}</td>
+<td>${row["Подозр. на рак"] !== undefined && row["Подозр. на рак"] !== null ? row["Подозр. на рак"] : '-'}</td>
+<td>${row["Cr(ccs)"] !== undefined && row["Cr(ccs)"] !== null ? row["Cr(ccs)"] : '-'}</td>
+<td>${row["Ат. кл. хл. эп. ан (AGC)"] !== undefined && row["Ат. кл. хл. эп. ан (AGC)"] !== null ? row["Ат. кл. хл. эп. ан (AGC)"] : '-'}</td>
+<td>${row["Подозр. на опух."] !== undefined && row["Подозр. на опух."] !== null ? row["Подозр. на опух."] : '-'}</td>
+<td>${row["Аденокарцинома"] !== undefined && row["Аденокарцинома"] !== null ? row["Аденокарцинома"] : '-'}</td>
+<td>${row["Прочие"] !== undefined && row["Прочие"] !== null ? row["Прочие"] : '-'}</td>
+`;
+tableBody.appendChild(tr);
+});
+}
+
+function displayProfosmotrTraditionalReport(data) {
+const tableBody = document.getElementById('profosmotrTraditionalTableBody');
+const periodDisplay = document.getElementById('profosmotr-traditional-period');
+const dateRange = getDateRange();
+const formatDate = (dateStr) => {
+const date = new Date(dateStr);
+return date.toLocaleDateString('ru-RU', {
+day: '2-digit',
+month: '2-digit',
+year: 'numeric'
+});
+};
+if (dateRange.from && dateRange.to) {
+periodDisplay.textContent = `Период: с ${formatDate(dateRange.from)} по ${formatDate(dateRange.to)}`;
+}
+tableBody.innerHTML = '';
+if (!data || data.length === 0) {
+const tr = document.createElement('tr');
+tr.innerHTML = '<td colspan="18" style="text-align: center;">Нет данных для отображения</td>';
+tableBody.appendChild(tr);
+return;
+}
+data.forEach(row => {
+const tr = document.createElement('tr');
+const pathologiesByDoctors = row["Патологий_врачами"] !== undefined && row["Патологий_врачами"] !== null ? row["Патологий_врачами"] : 0;
+const total = (row["NILM"] || 0) + (row["ASCUS"] || 0) + (row["ASC-H"] || 0) + (row["CIN I"] || 0) +
+(row["CIN II"] || 0) + (row["CIN III"] || 0) + (row["Подозр. на рак"] || 0) +
+(row["Cr(ccs)"] || 0) + (row["Ат. кл. хл. эп. ан (AGC)"] || 0) +
+(row["Подозр. на опух."] || 0) + (row["Аденокарцинома"] || 0) + (row["Прочие"] || 0);
+const pathologiesByLabTechnicians = total - pathologiesByDoctors;
+tr.innerHTML = `
+<td>${row["Лечебные учреждения"] || ''}</td>
+<td>${row["Стекол"] !== undefined && row["Стекол"] !== null ? row["Стекол"] : '-'}</td>
+<td>${pathologiesByDoctors > 0 ? pathologiesByDoctors : '-'}</td>
+<td>${pathologiesByLabTechnicians > 0 ? pathologiesByLabTechnicians : '-'}</td>
+<td>${row["Традиционная"] !== undefined && row["Традиционная"] !== null ? row["Традиционная"] : '-'}</td>
+<td>${total > 0 ? total : '-'}</td>
+<td>${row["NILM"] !== undefined && row["NILM"] !== null ? row["NILM"] : '-'}</td>
+<td>${row["ASCUS"] !== undefined && row["ASCUS"] !== null ? row["ASCUS"] : '-'}</td>
+<td>${row["ASC-H"] !== undefined && row["ASC-H"] !== null ? row["ASC-H"] : '-'}</td>
+<td>${row["CIN I"] !== undefined && row["CIN I"] !== null ? row["CIN I"] : '-'}</td>
+<td>${row["CIN II"] !== undefined && row["CIN II"] !== null ? row["CIN II"] : '-'}</td>
+<td>${row["CIN III"] !== undefined && row["CIN III"] !== null ? row["CIN III"] : '-'}</td>
+<td>${row["Подозр. на рак"] !== undefined && row["Подозр. на рак"] !== null ? row["Подозр. на рак"] : '-'}</td>
+<td>${row["Cr(ccs)"] !== undefined && row["Cr(ccs)"] !== null ? row["Cr(ccs)"] : '-'}</td>
+<td>${row["Ат. кл. хл. эп. ан (AGC)"] !== undefined && row["Ат. кл. хл. эп. ан (AGC)"] !== null ? row["Ат. кл. хл. эп. ан (AGC)"] : '-'}</td>
+<td>${row["Подозр. на опух."] !== undefined && row["Подозр. на опух."] !== null ? row["Подозр. на опух."] : '-'}</td>
+<td>${row["Аденокарцинома"] !== undefined && row["Аденокарцинома"] !== null ? row["Аденокарцинома"] : '-'}</td>
+<td>${row["Прочие"] !== undefined && row["Прочие"] !== null ? row["Прочие"] : '-'}</td>
+`;
+tableBody.appendChild(tr);
+});
+}
+
+function displayHistologyJournal(data) {
+const tableBody = document.getElementById('histologyJournalTableBody');
+const periodDisplay = document.getElementById('histology-journal-period');
+const dateRange = getDateRange();
+const formatDate = (dateStr) => {
+const date = new Date(dateStr);
+return date.toLocaleDateString('ru-RU', {
+day: '2-digit',
+month: '2-digit',
+year: 'numeric'
+});
+};
+if (dateRange.from && dateRange.to) {
+periodDisplay.textContent = `Период: с ${formatDate(dateRange.from)} по ${formatDate(dateRange.to)}`;
+}
+tableBody.innerHTML = '';
+if (!data || data.length === 0) {
+const tr = document.createElement('tr');
+tr.innerHTML = '<td colspan="3" style="text-align: center;">Нет данных для отображения</td>';
+tableBody.appendChild(tr);
+return;
+}
+const grouped = {};
+data.forEach(item => {
+if (!grouped[item.patient_id]) grouped[item.patient_id] = [];
+grouped[item.patient_id].push(item);
+});
+Object.keys(grouped).forEach(patientId => {
+const records = grouped[patientId];
+const tr = document.createElement('tr');
+const numbers = records.map(r => r.number).filter(Boolean).join('<br/>');
+const cytologyNames = records.map(r => r.cytology_conclusion_name).filter(Boolean).join('<br/>');
+const histologyNames = records.map(r => r.histology_name).filter(Boolean).join('<br/>');
+const localization = (records.find(r => r.localization && r.localization.trim()) || records[0]).localization || '';
+const ambCard = records[0].ambulatory_card_number || '-';
+const cytologyHTML = `Локализация (${localization})------------------------------<div class="gap"></div>${cytologyNames || '-'}`;
+const histologyHTML = `----- Номер амбулаторной карты ${ambCard}<div class="gap"></div>${histologyNames || '-'}`;
+tr.innerHTML = `
+<td>${numbers || '-'}</td>
+<td>${cytologyHTML}</td>
+<td>${histologyHTML}</td>
+`;
+tableBody.appendChild(tr);
+});
+}
+
+function exportToExcel(tableId) {
+let table;
+if (tableId === 'localization-table') {
+table = document.getElementById('reportTable');
+} else if (tableId === 'cytology-table') {
+table = document.getElementById('cytology-data');
+} else if (tableId === 'profosmotr-table') {
+table = document.getElementById('profosmotr-data');
+} else if (tableId === 'profosmotr-liquid-table') {
+table = document.getElementById('profosmotr-liquid-data');
+} else if (tableId === 'profosmotr-traditional-table') {
+table = document.getElementById('profosmotr-traditional-data');
+} else if (tableId === 'histology-journal-table') {
+table = document.getElementById('histology-journal-data');
+} else {
+alert('Неизвестный тип таблицы.');
+return;
+}
+try {
+const wb = XLSX.utils.book_new();
+const ws = XLSX.utils.table_to_sheet(table, { raw: true, dateNF: 'dd.mm.yyyy' });
+const wscols = [];
+for (let i = 0; i < table.rows[0].cells.length; i++) {
+wscols.push({ wch: 15 });
+}
+ws['!cols'] = wscols;
+XLSX.utils.book_append_sheet(wb, ws, 'Отчет');
+const date = new Date().toISOString().split('T')[0];
+let reportName = 'Отчет';
+if (tableId === 'localization-table') reportName = 'Отчет_локализации';
+else if (tableId === 'cytology-table') reportName = 'Отчет_цитологии';
+else if (tableId === 'profosmotr-table') reportName = 'Отчет_профосмотр';
+else if (tableId === 'profosmotr-liquid-table') reportName = 'Отчет_профосмотр_жидкостная';
+else if (tableId === 'profosmotr-traditional-table') reportName = 'Отчет_профосмотр_традиционная';
+else if (tableId === 'histology-journal-table') reportName = 'Журнал_расхождений_гистология';
+const fileName = `${reportName}_${date}.xlsx`;
+XLSX.writeFile(wb, fileName);
+} catch (error) {
+console.error('Ошибка при экспорте:', error);
+alert('Произошла ошибка при экспорте таблицы.');
+}
+}
+
+function printReport(tableId) {
+const tableContainer = document.getElementById(tableId);
+if (!tableContainer) {
+alert('Ошибка: таблица не найдена.');
+return;
+}
+const printFrame = document.createElement('iframe');
+printFrame.style.display = 'none';
+document.body.appendChild(printFrame);
+const printDocument = printFrame.contentDocument || printFrame.contentWindow.document;
+const printStyles = printDocument.createElement('style');
+printStyles.textContent = `
+@page { size: landscape; }
+body { font-family: Arial, sans-serif; margin: 10px; color: #000; }
+h2 { font-size: 1.2rem; margin-bottom: 15px; text-align: center; }
+.report-period { text-align: center; margin-bottom: 15px; color: #555; font-size: 0.9rem; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.75rem; }
+th, td { border: 1px solid #000; padding: 4px 2px; vertical-align: top; }
+td { text-align: left; }
+th { background-color: #e0e0e0; font-weight: bold; white-space: normal; word-break: break-word; min-width: 30px; max-width: 80px; text-align: left; }
+.align-right { text-align: right; }
+tr:nth-child(even) { background-color: #f9f9f9; }
+.total-row { font-weight: bold; background-color: #f0f0f0; }
+`;
+printDocument.head.appendChild(printStyles);
+const tableContent = tableContainer.cloneNode(true);
+const actionsDiv = tableContent.querySelector('.report-actions');
+if (actionsDiv) actionsDiv.remove();
+printDocument.body.appendChild(tableContent);
+setTimeout(() => {
+printFrame.contentWindow.focus();
+printFrame.contentWindow.print();
+setTimeout(() => { document.body.removeChild(printFrame); }, 1000);
+}, 500);
+}
+</script>
+</body>
+</html>

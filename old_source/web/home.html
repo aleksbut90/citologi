@@ -1,0 +1,3000 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Цитологическая служба</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="css/reports.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<style>
+/* Modal Styles */
+.modal {
+display: none;
+position: fixed;
+z-index: 1000;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.5);
+overflow: auto;
+}
+.modal-content {
+background: white;
+margin: 5% auto;
+padding: 1.5rem;
+border-radius: 8px;
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+width: 80%;
+max-width: 1280px;
+position: relative;
+animation: slideIn 0.3s ease;
+}
+@keyframes slideIn {
+from { transform: translateY(-50px); opacity: 0; }
+to { transform: translateY(0); opacity: 1; }
+}
+.close-button {
+position: absolute;
+top: 1rem;
+right: 1rem;
+width: 32px;
+height: 32px;
+background-color: #f8f9fa;
+border: 1px solid #e2e8f0;
+border-radius: 50%;
+color: #6b7280;
+font-size: 1.5rem;
+font-weight: bold;
+cursor: pointer;
+transition: all 0.3s ease;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+line-height: 1;
+padding: 0;
+user-select: none;
+text-decoration: none;
+box-sizing: border-box;
+z-index: 1;
+}
+.close-button:hover {
+background-color: #e2e8f0;
+color: #2c3e50;
+transform: scale(1.1);
+}
+.close-button:active {
+transform: scale(0.95);
+}
+/* Confirm Modal */
+.confirm-modal {
+display: none;
+position: fixed;
+z-index: 1000;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.5);
+}
+.confirm-modal-content {
+background: var(--background-card-gradient);
+margin: 15% auto;
+padding: 1.5rem;
+border-radius: 8px;
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+width: 320px;
+text-align: center;
+}
+.confirm-modal-content button {
+padding: 0.6rem 1.2rem;
+margin: 0.5rem;
+border-radius: 6px;
+font-weight: 500;
+cursor: pointer;
+transition: all 0.3s ease;
+}
+.save-btn {
+background: #2ecc71;
+color: white;
+}
+.save-btn:hover {
+background: #27ae60;
+transform: translateY(-2px);
+}
+.cancel-btn {
+background: #e74c3c;
+color: white;
+}
+.cancel-btn:hover {
+background: #c0392b;
+transform: translateY(-2px);
+}
+/* Delete Confirmation Modal */
+.delete-confirm-modal {
+display: none;
+position: fixed;
+z-index: 2000;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.6);
+backdrop-filter: blur(4px);
+}
+.delete-confirm-content {
+background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+margin: 12% auto;
+padding: 2rem;
+border-radius: 16px;
+box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+width: 420px;
+text-align: center;
+animation: deleteModalSlide 0.3s ease;
+}
+@keyframes deleteModalSlide {
+from { transform: translateY(-30px) scale(0.95); opacity: 0; }
+to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.delete-confirm-content .delete-icon {
+width: 70px;
+height: 70px;
+background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+margin: 0 auto 1.5rem;
+box-shadow: 0 8px 20px rgba(238, 90, 90, 0.4);
+}
+.delete-confirm-content .delete-icon svg {
+width: 35px;
+height: 35px;
+fill: white;
+}
+.delete-confirm-content h3 {
+color: #2c3e50;
+margin-bottom: 0.5rem;
+font-size: 1.4rem;
+}
+.delete-confirm-content p {
+color: #6b7280;
+margin-bottom: 1.5rem;
+font-size: 1rem;
+}
+.delete-confirm-content .study-id-display {
+background: #f1f5f9;
+padding: 0.5rem 1rem;
+border-radius: 8px;
+display: inline-block;
+font-weight: 600;
+color: #e74c3c;
+font-size: 1.2rem;
+margin-bottom: 1.5rem;
+}
+.delete-confirm-buttons {
+display: flex;
+gap: 1rem;
+justify-content: center;
+}
+.delete-confirm-buttons button {
+padding: 0.8rem 2rem;
+border-radius: 10px;
+font-weight: 600;
+font-size: 1rem;
+cursor: pointer;
+transition: all 0.3s ease;
+border: none;
+}
+.btn-delete-confirm {
+background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+color: white;
+box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+}
+.btn-delete-confirm:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(231, 76, 60, 0.5);
+}
+.btn-delete-cancel {
+background: #f1f5f9;
+color: #64748b;
+}
+.btn-delete-cancel:hover {
+background: #e2e8f0;
+transform: translateY(-2px);
+}
+/* Table Containers */
+.table-container, .marking-table {
+margin-top: 1.5rem;
+}
+.table-container table, .marking-table table {
+width: 100%;
+border-collapse: separate;
+border-spacing: 0;
+background: white;
+border-radius: 8px;
+overflow: hidden;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.table-container th, .table-container td,
+.marking-table th, .marking-table td {
+padding: 1rem;
+text-align: left;
+border-bottom: 1px solid #e2e8f0;
+}
+.table-container th, .marking-table th {
+background: #f8f9fa;
+font-weight: 600;
+color: #2c3e50;
+}
+.table-container tr:hover, .marking-table tr:hover {
+background: #f1f5f9;
+}
+/* Buttons */
+.barcode-btn, .view-details-btn, .edit-btn, #downloadBarcode, #printBarcode {
+padding: 0.6rem 1.2rem;
+border-radius: 6px;
+font-weight: 500;
+cursor: pointer;
+transition: all 0.3s ease;
+border: none;
+color: white;
+}
+.barcode-btn {
+background: #3498db;
+}
+.barcode-btn:hover {
+background: #2980b9;
+transform: translateY(-2px);
+}
+.view-details-btn {
+background: #2ecc71;
+}
+.view-details-btn:hover {
+background: #27ae60;
+transform: translateY(-2px);
+}
+.edit-btn {
+background: #f39c12;
+}
+.edit-btn:hover {
+background: #e67e22;
+transform: translateY(-2px);
+}
+#downloadBarcode {
+background: #2ecc71;
+}
+#downloadBarcode:hover {
+background: #27ae60;
+transform: translateY(-2px);
+}
+#printBarcode {
+background: #f39c12;
+}
+#printBarcode:hover {
+background: #e67e22;
+transform: translateY(-2px);
+}
+/* Barcode Modal */
+#barcodeModal .modal-content {
+max-width: 400px;
+}
+#barcodeContainer {
+text-align: center;
+margin: 1.5rem 0;
+}
+#barcodeValue {
+margin-top: 0.75rem;
+font-size: 1rem;
+color: #000000;
+}
+/* Notification */
+.notification {
+position: fixed;
+top: 1.5rem;
+right: 1.5rem;
+padding: 0.8rem 1.5rem;
+border-radius: 6px;
+color: white;
+font-weight: 500;
+z-index: 1000;
+opacity: 0;
+transition: opacity 0.3s ease;
+max-width: 320px;
+text-align: center;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.notification.success {
+background: #2ecc71;
+}
+.notification.error {
+background: #e74c3c;
+}
+.notification.show {
+opacity: 1;
+}
+/* Checkbox */
+.checkbox-container {
+display: inline-flex;
+align-items: center;
+position: relative;
+padding-left: 2rem;
+margin-bottom: 0.75rem;
+cursor: pointer;
+font-size: 1rem;
+user-select: none;
+}
+.custom-checkbox {
+position: absolute;
+opacity: 0;
+cursor: pointer;
+height: 0;
+width: 0;
+}
+.checkmark {
+position: absolute;
+top: 50%;
+left: 0;
+transform: translateY(-30%);
+height: 1.25rem;
+width: 1.25rem;
+background: #e2e8f0;
+border-radius: 4px;
+transition: all 0.3s ease;
+}
+.checkmark:after {
+content: "";
+position: absolute;
+display: none;
+left: 0.45rem;
+top: 0.25rem;
+width: 0.3rem;
+height: 0.6rem;
+border: solid white;
+border-width: 0 2px 2px 0;
+transform: rotate(45deg);
+}
+.custom-checkbox:checked ~ .checkmark {
+background: #3498db;
+}
+.custom-checkbox:checked ~ .checkmark:after {
+display: block;
+animation: checkAnim 0.2s ease forwards;
+}
+@keyframes checkAnim {
+0% { height: 0; }
+100% { height: 0.6rem; }
+}
+/* Filters and Inputs */
+.filters {
+margin-bottom: 1.5rem;
+}
+.filters > div {
+display: flex;
+gap: 1rem;
+flex-wrap: wrap;
+align-items: center;
+}
+#customDateRange {
+display: none;
+gap: 0.5rem;
+}
+#studiesCount {
+margin-top: 0.75rem;
+font-weight: 500;
+color: #000000;
+}
+/* Report Form */
+.report-form {
+display: flex;
+flex-direction: column;
+gap: 1rem;
+}
+.date-inputs {
+display: flex;
+gap: 1rem;
+flex-wrap: wrap;
+}
+.report-actions {
+margin: 1rem 0;
+display: flex;
+gap: 1rem;
+}
+.report-table-container {
+margin-top: 1rem;
+max-height: 60vh;
+overflow-y: auto;
+}
+/* Responsive Design */
+@media (max-width: 768px) {
+.modal-content {
+width: 95%;
+padding: 1rem;
+}
+.filters > div {
+flex-direction: column;
+align-items: stretch;
+}
+.table-container, .marking-table {
+overflow-x: auto;
+}
+.checkbox-container {
+padding-left: 1.75rem;
+}
+.checkmark {
+height: 1rem;
+width: 1rem;
+}
+.checkmark:after {
+left: 0.35rem;
+top: 0.2rem;
+width: 0.25rem;
+height: 0.5rem;
+}
+}
+.user-info span {
+font-weight: 500;
+color: #ffffff;
+}
+/* Create Copy button */
+.create-copy-btn {
+padding: 0.6rem 1.2rem;
+border-radius: 6px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s ease;
+border: none;
+color: #ffffff;
+background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
+box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+}
+.create-copy-btn:hover {
+transform: translateY(-2px);
+background: linear-gradient(135deg, #6c5ce7 0%, #5e60ce 100%);
+box-shadow: 0 8px 16px rgba(108, 92, 231, 0.4);
+}
+.create-copy-btn:active {
+transform: translateY(-1px);
+}
+</style>
+</head>
+<body>
+<!-- Модальное окно общих данных исследований -->
+<div id="studiesOverviewModal" class="modal">
+<div class="modal-content" style="width: 90%; max-width: 1200px;">
+<span class="close-button">×</span>
+<h2>Общие данные исследований</h2>
+<div class="filters" style="margin-bottom: 20px;">
+<div style="display: flex; gap: 20px; flex-wrap: wrap;">
+<div>
+<label for="dateFilter">Фильтр по дате:</label>
+<select id="dateFilter" style="width: 150px;">
+<option value="all">Все</option>
+<option value="today">Сегодня</option>
+<option value="month">Этот месяц</option>
+<option value="custom">Произвольный диапазон</option>
+</select>
+</div>
+<div id="customDateRange" style="display: none;">
+<label for="dateFrom">От:</label>
+<input type="date" id="dateFrom" style="width: 120px;">
+<label for="dateTo" style="margin-left: 10px;">До:</label>
+<input type="date" id="dateTo" style="width: 120px;">
+</div>
+<div>
+<label for="serviceFilter">Услуга:</label>
+<select id="serviceFilter" style="width: 200px;">
+<option value="">Все услуги</option>
+</select>
+</div>
+<button id="applyFilters" style="padding: 5px 15px;">Применить</button>
+<button id="resetFilters" style="padding: 5px 15px; margin-left: 10px;">Сбросить</button>
+<div style="margin-left: 30px;">
+<label for="studyIdSearch">Поиск стекла:</label>
+<input type="text" id="studyIdSearch" placeholder="ID исследования" style="width: 150px;">
+<button id="searchByStudyId" style="padding: 5px 15px;">Найти</button>
+</div>
+</div>
+<div id="studiesCount" style="margin-top: 10px;">Количество исследований: <span id="studiesCountValue">0</span></div>
+</div>
+<div class="table-container" style="max-height: 60vh; overflow-y: auto;">
+<table id="overviewTable">
+<thead>
+<tr>
+<th>ID исследования</th>
+<th>Дата исследования</th>
+<th>Лаборант</th>
+<th>Жидкостная</th>
+<th>Штрихкод</th>
+<th>Редактировать</th>
+<th>Удалить</th>
+<th>Действие</th>
+</tr>
+</thead>
+<tbody id="overviewTableBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Модальное окно просмотра деталей -->
+<div id="studyDetailsModal" class="modal">
+<div class="modal-content" style="width: 90%; max-width: 1000px;">
+<span class="close-button">×</span>
+<h2>Детали исследования</h2>
+<div id="studyDetailsContent" style="max-height: 70vh; overflow-y: auto; padding: 20px;"></div>
+</div>
+</div>
+<div class="container">
+<header>
+<h1>Цитологическая служба</h1>
+<div class="user-info">
+<span id="userFIO">Сотрудник: Администратор</span>
+</div>
+</header>
+<aside class="controls">
+<button id="createNewStudyButton">Создать новое исследование</button>
+<button id="printReferralButton">Печатать направление</button>
+<button type="button" id="overviewButton">Общие данные</button>
+<button type="button" id="profilaktikaButton">Профосмотр</button>
+<button type="button" id="othetButton">Старница отчетов</button>
+<button type="button" id="logoutButton">Выход</button>
+</aside>
+<section class="get-info">
+<h4>Общие сведения</h4>
+<form>
+<div class="form-info">
+<label for="caseNumber">Номер стекла:</label>
+<input type="text" id="caseNumber" name="caseNumber">
+</div>
+<div class="form-info">
+<label for="ambulatorySearch">Амбулаторная карта:</label>
+<input type="text" id="ambulatorySearch" name="ambulatorySearch">
+</div>
+<div class="form-info">
+<label for="direction">Номер направления:</label>
+<input type="text" id="direction" name="direction">
+</div>
+<div class="info-group">
+<label for="peresmotr">Пересмотр:</label>
+<label class="checkbox-container">
+<input type="checkbox" id="peresmotr" name="peresmotr" class="custom-checkbox">
+<span class="checkmark"></span>
+</label>
+</div>
+</form>
+</section>
+<div class="flex-container">
+<section class="case-data-fio">
+<h4>Пациент:</h4>
+<div class="form-group">
+<button type="button" id="findPatientButton">Найти пациента</button>
+</div>
+<div class="form-group">
+<label for="patientLastName">Фамилия:</label>
+<div class="tooltip-container">
+<input type="text" id="patientLastName" name="patientLastName">
+<div class="tooltip" id="tooltip-patientLastName"></div>
+</div>
+</div>
+<div class="form-group">
+<label for="patientFirstName">Имя:</label>
+<div class="tooltip-container">
+<input type="text" id="patientFirstName" name="patientFirstName">
+<div class="tooltip" id="tooltip-patientFirstName"></div>
+</div>
+</div>
+<div class="form-group">
+<label for="patientMiddleName">Отчество:</label>
+<div class="tooltip-container">
+<input type="text" id="patientMiddleName" name="patientMiddleName">
+<div class="tooltip" id="tooltip-patientMiddleName"></div>
+</div>
+</div>
+<div class="form-group">
+<label for="birthDate">Дата рождения:</label>
+<input type="date" id="birthDate" name="birthDate" value="" onchange="calculateAge()">
+<span id="birthDateDisplay"></span>
+</div>
+<div class="form-group">
+<label for="age">Возраст:</label>
+<input type="text" id="age" name="age" value="">
+</div>
+<div class="form-group">
+<label for="gender">Пол:</label>
+<select id="gender" name="gender">
+<option value="female">Женский</option>
+<option value="male">Мужской</option>
+</select>
+</div>
+<div class="form-group">
+<label for="snils">СНИЛС:</label>
+<div class="tooltip-container">
+<input type="text" id="snils" name="snils">
+<div class="tooltip" id="tooltip-snils"></div>
+</div>
+</div>
+<div class="form-group">
+<label for="raion">Район:</label>
+<select id="raion" name="raion" style="width: 275px;"></select>
+</div>
+<div class="form-group">
+<label for="address">Адрес проживания:</label>
+<div class="tooltip-container">
+<input type="text" id="address" name="address">
+<div class="tooltip" id="tooltip-address"></div>
+</div>
+</div>
+<div class="form-group">
+<label for="insurance">Полис:</label>
+<div class="tooltip-container">
+<input type="text" id="insurance" name="insurance">
+<div class="tooltip" id="tooltip-insurance"></div>
+</div>
+</div>
+<div class="form-group">
+<label for="is_dismissed">Снят с учета:</label>
+<input type="date" id="is_dismissed" name="is_dismissed">
+</div>
+<div class="form-group">
+<label for="ambulatory_card_number">Номер амбулаторной карты:</label>
+<div class="tooltip-container">
+<input type="text" id="ambulatory_card_number" name="ambulatory_card_number">
+<div class="tooltip" id="tooltip-ambulatory_card_number"></div>
+</div>
+</div>
+<div class="form-group">
+<label for="is_employed">Трудоустроен:</label>
+<label class="checkbox-container">
+<input type="checkbox" id="is_employed" name="is_employed" class="custom-checkbox">
+<span class="checkmark"></span>
+</label>
+</div>
+</section>
+<section class="case-data-cun">
+<h4>Поступление материала:</h4>
+<div class="case-group">
+<label for="direction_number">Номер направления:</label>
+<div class="tooltip-container">
+<input type="text" id="direction_number" name="direction_number">
+<div class="tooltip" id="tooltip-direction_number"></div>
+</div>
+</div>
+<div class="case-group">
+<label for="medical_organization_id">Медицинская организация:</label>
+<select id="medical_organization_id" name="medical_organization_id" style="width: 275px;"></select>
+</div>
+<div class="case-group">
+<label for="receipt_date">Дата поступления:</label>
+<input type="date" id="receipt_date" name="receipt_date">
+<span id="receiptDateDisplay"></span>
+</div>
+<div class="case-group">
+<label for="slides_count">Количество стеклопрепаратов:</label>
+<input type="number" id="slides_count" name="slides_count">
+</div>
+<div class="case-group">
+<label for="department_id">Отделение:</label>
+<select id="department_id" name="department_id" style="width: 275px;"></select>
+</div>
+<div class="case-group">
+<label for="referring_doctor_id">Врач-направитель:</label>
+<select id="referring_doctor_id" name="referring_doctor_id" style="width: 275px;"></select>
+</div>
+<div class="case-group">
+<label for="research_type_id">Характер исследования:</label>
+<select id="research_type_id" name="research_type_id" style="width: 275px;"></select>
+</div>
+<div class="case-group">
+<label for="clinical_diagnosis_id">Клинический диагноз (МКБ-10):</label>
+<select id="clinical_diagnosis_id" name="clinical_diagnosis_id" style="width: 275px;"></select>
+</div>
+<div class="case-group">
+<label for="localization_id">Локализация:</label>
+<select id="localization_id" name="localization_id" style="width: 275px;"></select>
+</div>
+<div class="case-group">
+<label for="ciphers_id">Шифр локализаций:</label>
+<select id="ciphers_id" name="ciphers_id" style="width: 275px;"></select>
+</div>
+<div class="case-group">
+<label for="material_type_id">Характер материала:</label>
+<select id="material_type_id" name="material_type_id" style="width: 275px;"></select>
+</div>
+<div class="case-group">
+<label for="gist_matik">Заключение гистолога:</label>
+<select id="gist_matik" name="gist_matik" style="width: 275px;"></select>
+</div>
+<div class="case-group">
+<label for="histologically_confirmed">Подтвержден гистологически:</label>
+<label class="checkbox-container">
+<input type="checkbox" id="histologically_confirmed" name="histologically_confirmed" class="custom-checkbox">
+<span class="checkmark"></span>
+</label>
+</div>
+<div class="case-group">
+<label for="conclusion_matched">Заключение совпало:</label>
+<label class="checkbox-container">
+<input type="checkbox" id="conclusion_matched" name="conclusion_matched" class="custom-checkbox">
+<span class="checkmark"></span>
+</label>
+</div>
+</section>
+<section class="case-info-fio">
+<h4>Результаты исследования:</h4>
+<div class="info-group">
+<label for="study_date">Дата исследования:</label>
+<input type="date" id="study_date" name="study_date">
+<span id="studyDateDisplay"></span>
+</div>
+<div class="info-group">
+<label for="doctor_id">Врач:</label>
+<select id="doctor_id" name="doctor_id" class="custom-select" style="width: 300px;">
+<option value="">Выберите врача</option>
+</select>
+</div>
+<div class="info-group">
+<label for="lab_technician_id">Лаборант:</label>
+<select id="lab_technician_id" name="lab_technician_id" class="custom-select" style="width: 300px;">
+<option value="">Выберите лаборанта</option>
+</select>
+</div>
+<div class="info-group">
+<label for="zno_dno">Просмотр ЗНО/ДНО:</label>
+<select id="zno_dno" name="zno_dno" class="custom-select" style="width: 300px;">
+</select>
+</div>
+<div class="info-group">
+<label for="service_id">Услуга:</label>
+<select id="service_id" name="service_id" class="custom-select" style="width: 300px;">
+</select>
+</div>
+<div class="info-group" style="display: none;">
+<label for="urgency_id">Срочность:</label>
+<select id="urgency_id" name="urgency_id" class="custom-select" style="width: 300px;">
+</select>
+</div>
+<div class="info-group" style="display: none;">
+<label for="study_type_id">Тип исследования:</label>
+<select id="study_type_id" name="study_type_id" class="custom-select" style="width: 300px;"></select>
+</div>
+<div class="info-group" style="display: none;">
+<label for="slides_count_study">Количество стекол:</label>
+<input type="text" id="slides_count_study" name="slides_count_study">
+</div>
+<div class="info-group" style="display: none;">
+<label for="transferred_to_doctor">Передано врачу стекл:</label>
+<input type="text" id="transferred_to_doctor" name="transferred_to_doctor">
+</div>
+<div class="info-group" style="display: none;">
+<label for="is_fluid">Жидкостная цитология:</label>
+<label class="checkbox-container">
+<input type="checkbox" id="is_fluid" name="is_fluid" class="custom-checkbox">
+<span class="checkmark"></span>
+</label>
+</div>
+<div class="info-group" style="display: none;">
+<label for="bethesda_term_id">Заключение:</label>
+<select id="bethesda_term_id" name="bethesda_term_id" class="custom-select" style="width: 300px;"></select>
+</div>
+<div class="info-group">
+<label for="conclusion_text">Текст заключения:</label>
+<textarea id="conclusion_text" name="conclusion_text" rows="3" style="width: 300px; overflow: hidden; resize: none; white-space: pre-wrap; overflow-wrap: anywhere;"></textarea>
+</div>
+<div class="info-group">
+<label for="comment">Комментарий:</label>
+<select id="comment" name="comment" class="custom-select" style="width: 300px;">
+<option value="">Выберите комментарий</option>
+</select>
+</div>
+<div class="info-group">
+<button type="button" id="savebd">Сохранить</button>
+<button type="button" id="createCopyBtn" class="create-copy-btn" style="margin-left: 10px; display: none;">Создать копию</button>
+</div>
+</section>
+<section class="marking-table">
+<h4>Исследования:</h4>
+<table id="studiesTable">
+<thead>
+<tr>
+<th>Номер стекла</th>
+<th>Дата исследования</th>
+<th>Врач</th>
+<th>Лаборант</th>
+<th>Жидкостная</th>
+<th>Штрихкод</th>
+<th>Пересмотр</th>
+<th>Штрих-код</th>
+<th>Действие</th>
+</tr>
+</thead>
+<tbody id="studiesTableBody">
+<!-- Данные будут заполняться динамически -->
+</tbody>
+</table>
+</section>
+</div>
+</div>
+<!-- Модальное окно поиска пациента -->
+<div id="patientModal" class="modal">
+<div class="modal-content">
+<span class="close-button">×</span>
+<h2>Найти пациента</h2>
+<form id="searchForm">
+<div class="form-row">
+<div class="input-field">
+<label for="modalSecondName">Фамилия:</label>
+<input type="text" id="modalSecondName" name="modalSecondName" required>
+</div>
+<div class="input-field">
+<label for="modalFirstName">Имя:</label>
+<input type="text" id="modalFirstName" name="modalFirstName" required>
+</div>
+<div class="input-field">
+<label for="modalMiddleName">Отчество:</label>
+<input type="text" id="modalMiddleName" name="modalMiddleName" required>
+</div>
+<div class="input-field">
+<label for="modalBirthDate">Дата рождения:</label>
+<input type="date" id="modalBirthDate" name="modalBirthDate">
+</div>
+</div>
+<button type="submit" class="search-button">Поиск</button>
+</form>
+<div id="searchMessage" style="margin-top: 10px; text-align: center; color: red;"></div>
+<div class="table-container">
+<table id="resultsTable">
+<thead>
+<tr>
+<th>Фамилия</th>
+<th>Имя</th>
+<th>Отчество</th>
+<th>Дата рождения</th>
+<th>Действие</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Модальное окно подтверждения -->
+<div id="confirmModal" class="confirm-modal">
+<div class="confirm-modal-content">
+<p>Сохранить данные о пациенте?</p>
+<button class="save-btn" id="confirmSave">Сохранить</button>
+<button class="cancel-btn" id="confirmCancel">Не сохранять</button>
+</div>
+</div>
+<!-- Модальное окно штрих-кода -->
+<div id="barcodeModal" class="modal">
+<div class="modal-content">
+<span class="close-button">×</span>
+<h2>Штрих-код исследования</h2>
+<div id="barcodeContainer" style="text-align: center; margin: 20px;">
+<canvas id="barcodeCanvas"></canvas>
+<div id="barcodeValue" style="margin-top: 10px;"></div>
+</div>
+<div style="display: flex; justify-content: center; gap: 10px;">
+<button id="downloadBarcode">Скачать PNG</button>
+<button id="printBarcode">Распечатать</button>
+</div>
+</div>
+</div>
+<!-- Модальное окно подтверждения удаления -->
+<div id="deleteConfirmModal" class="delete-confirm-modal">
+<div class="delete-confirm-content">
+<div class="delete-icon">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+</svg>
+</div>
+<h3>Подтверждение удаления</h3>
+<p>Вы действительно хотите удалить исследование?</p>
+<div class="study-id-display" id="deleteStudyIdDisplay">ID: </div>
+<div class="delete-confirm-buttons">
+<button class="btn-delete-cancel" id="cancelDeleteBtn">Отмена</button>
+<button class="btn-delete-confirm" id="confirmDeleteBtn">Удалить</button>
+</div>
+</div>
+</div>
+<!-- Notification element -->
+<div id="notification" class="notification"></div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="js/auth.js"></script>
+<script>
+function showNotification(message, type = 'success') {
+const notification = document.getElementById('notification');
+notification.textContent = message;
+notification.className = 'notification ' + type;
+notification.classList.add('show');
+setTimeout(() => {
+notification.classList.remove('show');
+}, 3000);
+}
+document.addEventListener('DOMContentLoaded', function() {
+// Авто-изменение высоты поля "Текст заключения"
+const conclusionTextarea = document.getElementById('conclusion_text');
+function autosizeConclusion() {
+if (!conclusionTextarea) return;
+conclusionTextarea.style.height = 'auto';
+conclusionTextarea.style.height = conclusionTextarea.scrollHeight + 'px';
+}
+if (conclusionTextarea) {
+conclusionTextarea.addEventListener('input', autosizeConclusion);
+autosizeConclusion();
+}
+window.autosizeConclusion = autosizeConclusion;
+// Проверка авторизации
+checkAuth().then(userData => {
+if (userData && userData.status === 'success') {
+const user = userData.user;
+if (user.status === 'admin') {
+window.location.href = "admin.html";
+return;
+}
+document.getElementById('userFIO').textContent = `Сотрудник: ${user.fio || user.login}`;
+} else {
+window.location.href = "authorization.html";
+}
+}).catch(error => {
+console.error('Ошибка проверки авторизации:', error);
+window.location.href = "authorization.html";
+});
+// Инициализация кнопки Ответы
+const othetButton = document.getElementById('othetButton');
+if (othetButton) {
+othetButton.addEventListener('click', function() {
+try {
+console.log('Переход на страницу othet.html');
+window.location.href = 'othet.html';
+} catch (error) {
+console.error('Ошибка при переходе на страницу othet.html:', error);
+alert('Ошибка при открытии страницы ответов. Пожалуйста, попробуйте позже.');
+}
+});
+} else {
+console.error('Кнопка "Ответы" не найдена');
+}
+const patientModal = document.getElementById('patientModal');
+const barcodeModal = document.getElementById('barcodeModal');
+const studiesOverviewModal = document.getElementById('studiesOverviewModal');
+const studyDetailsModal = document.getElementById('studyDetailsModal');
+const confirmModal = document.getElementById('confirmModal');
+const searchForm = document.getElementById('searchForm');
+const resultsTableBody = document.querySelector('#resultsTable tbody');
+const searchMessage = document.getElementById('searchMessage');
+let currentPatientId = null;
+let currentStudyId = null;
+// Инициализация Select2
+$('#medical_organization_id').select2({
+placeholder: "Выберите организацию",
+allowClear: true,
+width: '275px'
+});
+$('#clinical_diagnosis_id').select2({
+placeholder: "Выберите код МКБ-10",
+allowClear: true,
+width: '275px',
+ajax: {
+delay: 250,
+transport: function(params, success, failure) {
+const transliterationMap = {
+'а': 'f', 'б': ',', 'в': 'd', 'г': 'u', 'д': 'l', 'е': 't', 'ё': '`',
+'ж': ';', 'з': 'p', 'и': 'b', 'й': 'q', 'к': 'r', 'л': 'k', 'м': 'v',
+'н': 'y', 'о': 'j', 'п': 'g', 'р': 'h', 'с': 'c', 'т': 'n', 'у': 'e',
+'ф': 'a', 'х': '[', 'ц': 'w', 'ч': 'x', 'ш': 'i', 'щ': 'o', 'ъ': ']',
+'ы': 's', 'ь': 'm', 'э': "'", 'ю': '.', 'я': 'z',
+'А': 'F', 'Б': '<', 'В': 'D', 'Г': 'U', 'Д': 'L', 'Е': 'T', 'Ё': '~',
+'Ж': ':', 'З': 'P', 'И': 'B', 'Й': 'Q', 'К': 'R', 'Л': 'K', 'М': 'V',
+'Н': 'Y', 'О': 'J', 'П': 'G', 'Р': 'H', 'С': 'C', 'Т': 'N', 'У': 'E',
+'Ф': 'A', 'Х': '{', 'Ц': 'W', 'Ч': 'X', 'Ш': 'I', 'Щ': 'O', 'Ъ': '}',
+'Ы': 'S', 'Ь': 'M', 'Э': '"', 'Ю': '>', 'Я': 'Z'
+};
+let searchTerm = params.data.term || '';
+let transliteratedTerm = '';
+for (let i = 0; i < searchTerm.length; i++) {
+const char = searchTerm[i];
+transliteratedTerm += transliterationMap[char] || char;
+}
+console.log('Original term:', searchTerm, 'Transliterated term:', transliteratedTerm);
+fetch(`/api/search_mkb_data?term=${encodeURIComponent(transliteratedTerm)}&limit=50`)
+.then(response => response.json())
+.then(function(data) {
+success({ results: data.map(item => ({ id: item.id, text: item.text })) });
+})
+.catch(failure);
+}
+}
+}).on('select2:open', function() {
+setTimeout(() => {
+const searchInput = document.querySelector('.select2-search__field');
+if (searchInput) {
+const transliterationMap = {
+'а': 'f', 'б': ',', 'в': 'd', 'г': 'u', 'д': 'l', 'е': 't', 'ё': '`',
+'ж': ';', 'з': 'p', 'и': 'b', 'й': 'q', 'к': 'r', 'л': 'k', 'м': 'v',
+'н': 'y', 'о': 'j', 'п': 'g', 'р': 'h', 'с': 'c', 'т': 'n', 'у': 'e',
+'ф': 'a', 'х': '[', 'ц': 'w', 'ч': 'x', 'ш': 'i', 'щ': 'o', 'ъ': ']',
+'ы': 's', 'ь': 'm', 'э': "'", 'ю': '.', 'я': 'z',
+'А': 'F', 'Б': '<', 'В': 'D', 'Г': 'U', 'Д': 'L', 'Е': 'T', 'Ё': '~',
+'Ж': ':', 'З': 'P', 'И': 'B', 'Й': 'Q', 'К': 'R', 'Л': 'K', 'М': 'V',
+'Н': 'Y', 'О': 'J', 'П': 'G', 'Р': 'H', 'С': 'C', 'Т': 'N', 'У': 'E',
+'Ф': 'A', 'Х': '{', 'Ц': 'W', 'Ч': 'X', 'Ш': 'I', 'Щ': 'O', 'Ъ': '}',
+'Ы': 'S', 'Ь': 'M', 'Э': '"', 'Ю': '>', 'Я': 'Z'
+};
+searchInput.addEventListener('input', function(e) {
+let value = this.value;
+let newValue = '';
+for (let i = 0; i < value.length; i++) {
+const char = value[i];
+newValue += transliterationMap[char] || char;
+}
+if (newValue !== value) {
+this.value = newValue;
+this.dispatchEvent(new Event('input', { bubbles: true }));
+}
+});
+}
+}, 100);
+});
+$('#doctor_id').select2({
+placeholder: "Выберите врача",
+allowClear: true,
+width: '300px'
+});
+$('#lab_technician_id').select2({
+placeholder: "Выберите лаборанта",
+allowClear: true,
+width: '300px'
+});
+$('#service_id').select2({
+placeholder: "Выберите услугу",
+allowClear: true,
+width: '300px'
+});
+$('#research_type_id').select2({
+placeholder: "Выберите характер исследования",
+allowClear: true,
+width: '275px'
+});
+$('#material_type_id').select2({
+placeholder: "Выберите характер материала",
+allowClear: true,
+width: '275px'
+});
+$('#gist_matik').select2({
+placeholder: "Выберите заключение гистолога",
+allowClear: true,
+width: '275px',
+tags: true
+});
+$('#study_type_id').select2({
+placeholder: "Выберите тип исследования",
+allowClear: true,
+width: '300px'
+});
+$('#bethesda_term_id').select2({
+placeholder: "Выберите заключение Бетесда",
+allowClear: true,
+width: '300px',
+tags: true,
+createTag: function(params) {
+return {
+id: params.term,
+text: params.term,
+newOption: true
+}
+}
+});
+$('#zno_dno').select2({
+placeholder: "Выберите ЗНО/ДНО",
+allowClear: true,
+width: '300px'
+});
+$('#urgency_id').select2({
+placeholder: "Выберите срочность",
+allowClear: true,
+width: '300px'
+});
+$('#comment').select2({
+placeholder: "Выберите комментарий",
+allowClear: true,
+width: '300px'
+});
+$('#localization_id').select2({
+placeholder: "Выберите локализацию",
+allowClear: true,
+width: '275px'
+});
+$('#ciphers_id').select2({
+placeholder: "Выберите шифр локализаций",
+allowClear: true,
+width: '275px'
+});
+$('#department_id').select2({
+placeholder: "Выберите отделение",
+allowClear: true,
+width: '275px'
+});
+$('#referring_doctor_id').select2({
+placeholder: "Введите или выберите врача-направителя",
+allowClear: true,
+width: '275px',
+tags: true,
+createTag: function(params) {
+return {
+id: params.term,
+text: params.term,
+newTag: true
+};
+}
+}).on('select2:select', function(e) {
+const data = e.params.data;
+if (data.newTag) {
+fetch('/api/add_referring_doctor', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+},
+body: JSON.stringify({ name: data.text })
+})
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+const option = new Option(response.name, response.id, true, true);
+$('#referring_doctor_id').append(option).trigger('change');
+showNotification('Врач-направитель успешно добавлен');
+} else {
+showNotification('Ошибка при добавлении врача-направителя: ' + response.message, 'error');
+}
+});
+}
+});
+// Загрузка существующих врачей-направителей
+fetch('/api/get_referring_doctors')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+$('#referring_doctor_id').empty();
+$('#referring_doctor_id').append(new Option("Выберите врача-направителя", "", true, true));
+$.each(response.data, function(index, item) {
+$('#referring_doctor_id').append(new Option(item.name, item.id));
+});
+}
+});
+// Загрузка данных для выпадающих списков
+fetch('/api/load_organ_data')
+.then(response => response.json())
+.then(function(data) {
+$('#medical_organization_id').empty();
+$('#medical_organization_id').append(new Option("Выберите организацию", "", true, true));
+$.each(data, function(index, item) {
+$('#medical_organization_id').append(new Option(item.text, item.id));
+});
+// Устанавливаем ГБУ "КООД" по умолчанию
+$('#medical_organization_id').val('1.2.643.5.1.13.13.12.2.45.4286').trigger('change');
+console.log('Организации загружены:', data);
+});
+
+// 🔧 ИЗМЕНЕНИЕ: Логика загрузки отделений в зависимости от организации
+$('#medical_organization_id').on('change', function() {
+const selectedOrgId = this.value;
+const KOOD_ID = '1.2.643.5.1.13.13.12.2.45.4286';
+
+// Очищаем список отделений
+$('#department_id').empty().append(new Option("Выберите отделение", "", true, true));
+
+if (!selectedOrgId) {
+return;
+}
+
+// Загружаем все отделения
+fetch('/api/get_department_data')
+.then(response => response.json())
+.then(function(response) {
+console.log('Department data response:', response);
+
+if (response.status === "success") {
+const uniqueDepartments = new Set();
+
+$.each(response.data, function(index, item) {
+// Если КООД — показываем все отделения
+// Если не КООД — только поликлиника (id=3) и стационар (id=1)
+if (selectedOrgId === KOOD_ID) {
+// КООД — все отделения
+if (Number.isInteger(item.id) && !uniqueDepartments.has(item.id)) {
+uniqueDepartments.add(item.id);
+$('#department_id').append(new Option(item.name, item.id));
+}
+} else {
+// Не КООД — только поликлиника и стационар
+if ((item.id === 1 || item.id === 3) && Number.isInteger(item.id) && !uniqueDepartments.has(item.id)) {
+uniqueDepartments.add(item.id);
+$('#department_id').append(new Option(item.name, item.id));
+}
+}
+});
+
+console.log('Loaded departments:', $('#department_id option').length);
+}
+})
+.catch(function(error) {
+console.error('Error loading departments:', error);
+});
+});
+
+// Загрузка врачей
+fetch('/api/get_doctors')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+console.log('Loading doctors data:', response.data);
+$('#doctor_id').empty();
+$('#doctor_id').append(new Option("Выберите врача", "", true, true));
+$.each(response.data, function(index, item) {
+console.log('Adding doctor option:', item.id, item.full_name);
+$('#doctor_id').append(new Option(item.full_name, item.id));
+});
+}
+});
+
+// Загрузка лаборантов
+fetch('/api/get_lab_technicians')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+console.log('Loading lab technicians data:', response.data);
+$('#lab_technician_id').empty();
+$('#lab_technician_id').append(new Option("Выберите лаборанта", "", true, true));
+$.each(response.data, function(index, item) {
+console.log('Adding lab tech option:', item.id, item.name);
+$('#lab_technician_id').append(new Option(item.name, item.id));
+});
+}
+});
+
+fetch('/api/get_services_data')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+$('#service_id').empty();
+$('#service_id').append(new Option("Выберите услугу", "", true, true));
+$.each(response.data, function(index, item) {
+$('#service_id').append(new Option(item.name, item.id));
+});
+}
+});
+
+fetch('/api/get_bethesda_terms')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+$('#bethesda_term_id').empty();
+$('#bethesda_term_id').append(new Option("Выберите заключение", "", true, true));
+$.each(response.data, function(index, item) {
+$('#bethesda_term_id').append(new Option(item.name, item.id));
+});
+}
+});
+
+fetch('/api/get_study_characters')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+$('#research_type_id').empty();
+$('#research_type_id').append(new Option("Выберите характер", "", true, true));
+$.each(response.data, function(index, item) {
+$('#research_type_id').append(new Option(item.name, item.id));
+});
+}
+});
+
+fetch('/api/get_sample_types')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+$('#material_type_id').empty();
+$('#material_type_id').append(new Option("Выберите материал", "", true, true));
+$.each(response.data, function(index, item) {
+$('#material_type_id').append(new Option(item.name, item.id));
+});
+}
+});
+
+fetch('/api/get_gistolog_data')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+$('#gist_matik').empty();
+$('#gist_matik').append(new Option("Выберите заключение", "", true, true));
+$.each(response.data, function(index, item) {
+$('#gist_matik').append(new Option(item.name, item.id));
+});
+} else {
+console.error('Ошибка при загрузке данных gistolog:', response.message);
+showNotification('Ошибка при загрузке заключений гистолога', 'error');
+}
+})
+.catch(function(error) {
+console.error('Ошибка при загрузке данных gistolog:', error);
+showNotification('Ошибка при загрузке заключений гистолога', 'error');
+});
+
+fetch('/api/get_service_types')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+$('#study_type_id').empty();
+$('#study_type_id').append(new Option("Выберите тип", "", true, true));
+$.each(response.data, function(index, item) {
+$('#study_type_id').append(new Option(item.name, item.id));
+});
+}
+});
+
+fetch('/api/get_comment_data')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+$('#comment').empty();
+$('#comment').append(new Option("Выберите комментарий", "", true, true));
+$.each(response.data, function(index, item) {
+$('#comment').append(new Option(item.name, item.id));
+});
+} else {
+console.error('Ошибка при загрузке данных comment:', response.message);
+showNotification('Ошибка при загрузке комментариев', 'error');
+}
+})
+.catch(function(error) {
+console.error('Ошибка при загрузке данных comment:', error);
+showNotification('Ошибка при загрузке комментариев', 'error');
+});
+
+fetch('/api/get_localization_data')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+$('#localization_id').empty();
+$('#localization_id').append(new Option("Выберите локализацию", "", true, true));
+$.each(response.data, function(index, item) {
+$('#localization_id').append(new Option(item.name, item.id));
+});
+}
+});
+
+fetch('/api/get_code_cytology_data')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+$('#ciphers_id').empty();
+$('#ciphers_id').append(new Option("Выберите шифр", "", true, true));
+$.each(response.data, function(index, item) {
+$('#ciphers_id').append(new Option(item.name, item.id));
+});
+}
+});
+
+// Обработчик изменения организации
+$('#medical_organization_id').on('change', function() {
+    const selectedOrgId = this.value;
+    const KOOD_ID = '1.2.643.5.1.13.13.12.2.45.4286';
+    
+    // Очищаем список отделений
+    $('#department_id').empty().append(new Option("Выберите отделение", "", true, true));
+    
+    if (!selectedOrgId) {
+        return;
+    }
+    
+    // Загружаем все отделения
+    fetch('/api/get_department_data')
+    .then(response => response.json())
+    .then(function(response) {
+        console.log('Department data response:', response);
+        
+        if (response.status === "success") {
+            const uniqueDepartments = new Set();
+            
+            $.each(response.data, function(index, item) {
+                // Проверяем, что id существует
+                if (item.id && item.id !== null && item.id !== undefined) {
+                    // Если КООД — показываем все отделения
+                    // Если не КООД — только поликлиника (id=3) и стационар (id=1)
+                    if (selectedOrgId === KOOD_ID) {
+                        // КООД — все отделения
+                        if (!uniqueDepartments.has(item.id)) {
+                            uniqueDepartments.add(item.id);
+                            $('#department_id').append(new Option(item.name, item.id));
+                        }
+                    } else {
+                        // Не КООД — только поликлиника (id=3) и стационар (id=1)
+                        if ((item.id === '1' || item.id === '3') && !uniqueDepartments.has(item.id)) {
+                            uniqueDepartments.add(item.id);
+                            $('#department_id').append(new Option(item.name, item.id));
+                        }
+                    }
+                }
+            });
+            
+            console.log('Loaded departments:', $('#department_id option').length);
+        }
+    })
+    .catch(function(error) {
+        console.error('Error loading departments:', error);
+    });
+});
+// Обработчики событий
+document.getElementById('findPatientButton').addEventListener('click', function() {
+resetForm();
+currentPatientId = null;
+currentStudyId = null;
+document.getElementById('study_date').value = new Date().toISOString().split('T')[0];
+document.getElementById('caseNumber').value = '';
+document.getElementById('direction').value = '';
+patientModal.style.display = 'block';
+});
+
+patientModal.querySelector('.close-button').addEventListener('click', function() {
+patientModal.style.display = 'none';
+searchForm.reset();
+resultsTableBody.innerHTML = '';
+searchMessage.textContent = '';
+});
+
+barcodeModal.querySelector('.close-button').addEventListener('click', function() {
+barcodeModal.style.display = 'none';
+});
+
+studiesOverviewModal.querySelector('.close-button').addEventListener('click', function() {
+studiesOverviewModal.style.display = 'none';
+});
+
+studyDetailsModal.querySelector('.close-button').addEventListener('click', function() {
+studyDetailsModal.style.display = 'none';
+});
+
+window.addEventListener('click', function(event) {
+if (event.target === patientModal) {
+patientModal.style.display = 'none';
+searchForm.reset();
+resultsTableBody.innerHTML = '';
+searchMessage.textContent = '';
+} else if (event.target === barcodeModal) {
+barcodeModal.style.display = 'none';
+} else if (event.target === studiesOverviewModal) {
+studiesOverviewModal.style.display = 'none';
+} else if (event.target === studyDetailsModal) {
+studyDetailsModal.style.display = 'none';
+}
+});
+
+document.getElementById('logoutButton').addEventListener('click', async () => {
+try {
+await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+} catch (e) {
+console.error('Ошибка выхода:', e);
+} finally {
+window.location.href = 'authorization.html';
+}
+});
+
+document.getElementById('profilaktikaButton').addEventListener('click', function() {
+try {
+console.log('Переход на страницу profosmotr.html');
+window.location.href = 'profosmotr.html';
+} catch (error) {
+console.error('Ошибка при переходе на страницу profosmotr.html:', error);
+alert('Ошибка при открытии страницы профосмотра. Пожалуйста, попробуйте позже.');
+}
+});
+
+document.getElementById('savebd').addEventListener('click', async function() {
+await savePatientData(false);
+});
+
+document.getElementById('studiesTableBody').addEventListener('click', async function(e) {
+if (e.target.tagName === 'BUTTON' && e.target.textContent === 'Выбрать') {
+const studyId = e.target.getAttribute('data-study-id');
+if (studyId) await loadStudyData(studyId);
+} else if (e.target.className === 'barcode-btn') {
+const studyId = e.target.getAttribute('data-study-id');
+if (studyId) await showBarcodeModal(studyId);
+}
+});
+
+document.getElementById('createNewStudyButton').addEventListener('click', async function() {
+resetForm();
+currentPatientId = null;
+currentStudyId = null;
+document.getElementById('study_date').value = new Date().toISOString().split('T')[0];
+showNotification('Создано новое исследование. Заполните данные и сохраните.');
+});
+
+document.getElementById('downloadBarcode').addEventListener('click', downloadBarcode);
+document.getElementById('printBarcode').addEventListener('click', printBarcode);
+
+document.getElementById('overviewButton').addEventListener('click', async function() {
+await initializeFilters();
+await loadAllStudies();
+studiesOverviewModal.style.display = 'block';
+});
+
+document.getElementById('applyFilters').addEventListener('click', async function() {
+await loadAllStudies();
+});
+
+document.getElementById('resetFilters').addEventListener('click', async function() {
+document.getElementById('dateFilter').value = 'all';
+document.getElementById('customDateRange').style.display = 'none';
+document.getElementById('dateFrom').value = '';
+document.getElementById('dateTo').value = '';
+$('#serviceFilter').val('').trigger('change');
+document.getElementById('studyIdSearch').value = '';
+await loadAllStudies();
+});
+
+document.getElementById('searchByStudyId').addEventListener('click', async function() {
+const studyId = document.getElementById('studyIdSearch').value.trim();
+if (!studyId) {
+alert('Введите ID исследования');
+return;
+}
+await searchByStudyId(studyId);
+});
+
+document.getElementById('dateFilter').addEventListener('change', function() {
+const customRange = document.getElementById('customDateRange');
+customRange.style.display = this.value === 'custom' ? 'flex' : 'none';
+});
+
+document.getElementById('caseNumber').addEventListener('change', async function() {
+const caseNumber = this.value.trim();
+if (caseNumber) {
+await searchByCaseNumber(caseNumber);
+}
+});
+
+document.getElementById('ambulatorySearch').addEventListener('change', async function() {
+const card = this.value.trim();
+if (card) {
+await searchByAmbulatoryCard(card);
+}
+});
+
+document.getElementById('direction').addEventListener('change', async function() {
+const directionNumber = this.value.trim();
+console.log("Поиск по номеру направления: " + directionNumber);
+if (directionNumber) {
+await searchByDirectionNumber(directionNumber);
+}
+});
+
+document.getElementById('printReferralButton').addEventListener('click', async function() {
+if (!currentPatientId) {
+showNotification('Сначала выберите пациента или сохраните данные', 'error');
+return;
+}
+const doctorId = document.getElementById('doctor_id')?.value || '';
+let physicianName = '';
+let physicianInitials = '';
+if (doctorId) {
+try {
+const nameResponse = await fetch(`/api/get_physician_name_by_id?physician_id=${doctorId}`).then(r => r.json());
+if (nameResponse.status === "success") {
+physicianName = nameResponse.name;
+} else {
+console.error('Ошибка получения имени врача:', nameResponse.message);
+physicianName = '—';
+}
+const initialsResponse = await fetch(`/api/get_physician_initials_by_id?physician_id=${doctorId}`).then(r => r.json());
+if (initialsResponse.status === "success") {
+physicianInitials = initialsResponse.initials;
+} else {
+console.error('Ошибка получения инициалов врача:', initialsResponse.message);
+physicianInitials = '—';
+}
+} catch (error) {
+console.error('Ошибка при получении данных врача:', error);
+physicianName = '—';
+physicianInitials = '—';
+}
+}
+const patientData = {
+physician_name: physicianName,
+physician_initials: physicianInitials,
+full_name: `${document.getElementById('patientLastName')?.value || ''} ${document.getElementById('patientFirstName')?.value || ''} ${document.getElementById('patientMiddleName')?.value || ''}`.trim(),
+birth_date: document.getElementById('birthDate')?.value || '',
+insurance: document.getElementById('insurance')?.value || '',
+snils: normalizeSnils(document.getElementById('snils')?.value || '') || '',
+address: document.getElementById('address')?.value || '',
+clinical_diagnosis_text: document.getElementById('clinical_diagnosis_id')?.selectedOptions[0]?.text || '',
+clinical_diagnosis_id: document.getElementById('clinical_diagnosis_id')?.value || '',
+study_date: document.getElementById('study_date')?.value || '',
+service_id: document.getElementById('service_id')?.selectedOptions[0]?.text || '',
+transferred_to_doctor: document.getElementById('transferred_to_doctor')?.value || '',
+material_date: document.getElementById('study_date')?.value || '',
+referral_date: document.getElementById('study_date')?.value || ''
+};
+const printWindow = window.open('', '_blank', 'width=1280,height=720');
+fetch('pattern.html')
+.then(response => {
+if (!response.ok) throw new Error(`Не удалось загрузить pattern.html: ${response.status}`);
+return response.text();
+})
+.then(template => {
+printWindow.document.write(template);
+printWindow.document.close();
+printWindow.addEventListener('load', function() {
+printWindow.postMessage(patientData, '*');
+});
+setTimeout(() => printWindow.focus(), 500);
+})
+.catch(error => {
+console.error('Ошибка:', error);
+printWindow.close();
+alert('Ошибка при подготовке направления: ' + error.message);
+});
+});
+
+// Основные функции
+async function savePatientData(createCopy = false) {
+const doctorValue = $('#doctor_id').val();
+const labTechnicianValue = $('#lab_technician_id').val();
+const serviceValue = $('#service_id').val();
+const isReview = document.getElementById('peresmotr').checked;
+let gistMatikValue = $('#gist_matik').val();
+if (gistMatikValue && isNaN(Number(gistMatikValue))) {
+const response = await fetch('/api/add_gistolog_term', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+},
+body: JSON.stringify({ name: gistMatikValue })
+}).then(r => r.json());
+if (response.status === "success") {
+$('#gist_matik').find('option:selected').remove();
+const newOption = new Option(response.name, response.id, true, true);
+$('#gist_matik').append(newOption).trigger('change');
+gistMatikValue = response.id;
+} else {
+showNotification('Ошибка при добавлении заключения: ' + response.message, 'error');
+return false;
+}
+}
+console.log('Selected doctor value:', doctorValue);
+console.log('Selected lab technician value:', labTechnicianValue);
+console.log('Selected doctor text:', $('#doctor_id option:selected').text());
+console.log('Selected lab technician text:', $('#lab_technician_id option:selected').text());
+if (createCopy && isReview && currentStudyId) {
+try {
+const studyResponse = await fetch(`/api/get_study_data?study_id=${currentStudyId}`).then(r => r.json());
+if (studyResponse.status === "success" && studyResponse.data) {
+const { study, material } = studyResponse.data;
+if ((study && study.is_reviewed) || (material && material.is_reviewed)) {
+showNotification('Невозможно создать копию исследования, которое уже является копией.', 'error');
+return false;
+}
+}
+} catch (error) {
+console.error('Ошибка при проверке статуса исследования:', error);
+}
+}
+const data = {
+last_name: document.getElementById('patientLastName').value,
+first_name: document.getElementById('patientFirstName').value,
+middle_name: document.getElementById('patientMiddleName').value,
+birth_date: document.getElementById('birthDate').value,
+snils: normalizeSnils(document.getElementById('snils').value || '') || '',
+address: document.getElementById('address').value,
+district_id: document.getElementById('raion').value,
+insurance: document.getElementById('insurance').value,
+is_employed: document.getElementById('is_employed').checked,
+dismissal_date: document.getElementById('is_dismissed').value || null,
+ambulatory_card_number: document.getElementById('ambulatory_card_number').value || null,
+direction_number: document.getElementById('direction_number').value,
+orderer: document.getElementById('medical_organization_id').value || null,
+receipt_date: document.getElementById('receipt_date').value || null,
+slides_count_mat: parseInt(document.getElementById('slides_count').value) || null,
+department_id: document.getElementById('department_id').value || null,
+referring_doctor_id: parseInt(document.getElementById('referring_doctor_id').value) || null,
+research_type: parseInt(document.getElementById('research_type_id').value) || null,
+clinical_diagnosis: parseInt(document.getElementById('clinical_diagnosis_id').value) || null,
+localization: parseInt(document.getElementById('localization_id').value) || null,
+material_type: parseInt(document.getElementById('material_type_id').value) || null,
+ciphers_id: document.getElementById('ciphers_id').value || null,
+gist_matik: parseInt(gistMatikValue) || null,
+histologically_confirmed: document.getElementById('histologically_confirmed').checked,
+conclusion_matched: document.getElementById('conclusion_matched').checked,
+date_of_study: document.getElementById('study_date').value || null,
+doctor_id: parseInt(doctorValue) || null,
+lab_technician_id: parseInt(labTechnicianValue) || null,
+zno_dno: document.getElementById('zno_dno').value || null,
+service: serviceValue ? parseInt(serviceValue) : null,
+urgency: parseInt(document.getElementById('urgency_id').value) || null,
+study_type: parseInt(document.getElementById('study_type_id').value) || null,
+is_fluid: document.getElementById('is_fluid').checked,
+slides_count: parseInt(document.getElementById('slides_count_study').value) || null,
+transferred_to_doctor: parseInt(document.getElementById('transferred_to_doctor').value) || null,
+bethesda_term_id: parseInt(document.getElementById('bethesda_term_id').value) || null,
+conclusion_text: document.getElementById('conclusion_text').value || null,
+comment: document.getElementById('comment').value || null,
+is_review: isReview
+};
+if (!data.district_id.trim()) {
+showNotification("Пожалуйста, укажите район.", 'error');
+return false;
+}
+try {
+const response = await fetch('/api/save_patient_to_db', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+},
+body: JSON.stringify({
+last_name: data.last_name,
+first_name: data.first_name,
+middle_name: data.middle_name,
+birth_date: data.birth_date,
+snils: normalizeSnils(data.snils || '') || '',
+address: data.address,
+district_id: data.district_id,
+insurance: data.insurance,
+is_employed: data.is_employed,
+dismissal_date: data.dismissal_date,
+ambulatory_card_number: data.ambulatory_card_number,
+direction_number: data.direction_number,
+orderer: data.orderer,
+receipt_date: data.receipt_date,
+slides_count_mat: data.slides_count_mat,
+department_id: data.department_id,
+referring_doctor_id: data.referring_doctor_id,
+research_type: data.research_type,
+clinical_diagnosis: data.clinical_diagnosis,
+localization: data.localization,
+material_type: data.material_type,
+ciphers_id: data.ciphers_id,
+gist_matik: data.gist_matik,
+histologically_confirmed: data.histologically_confirmed,
+conclusion_matched: data.conclusion_matched,
+doctor_id: data.doctor_id,
+lab_technician_id: data.lab_technician_id,
+zno_dno: data.zno_dno,
+service: data.service,
+urgency: data.urgency,
+study_type: data.study_type,
+is_fluid: data.is_fluid,
+slides_count: data.slides_count,
+transferred_to_doctor: data.transferred_to_doctor,
+bethesda_term_id: data.bethesda_term_id,
+conclusion_text: data.conclusion_text,
+comment: data.comment,
+date_of_study: data.date_of_study,
+is_review: data.is_review,
+create_copy: createCopy,
+current_study_id: currentStudyId
+})
+}).then(r => r.json());
+if (response.status === "success") {
+const studyId = response.study_id;
+const studyDate = data.date_of_study;
+const barcode = generateBarcode(studyDate, studyId);
+await updateBarcodeInDatabase(studyId, barcode);
+showNotification(response.message + `
+Сгенерирован штрихкод: ${barcode}`);
+currentPatientId = response.patient_id;
+await loadPatientStudies(response.patient_id);
+reloadBethesdaTerms($('#bethesda_term_id').val());
+return true;
+} else {
+showNotification('Произошла ошибка при сохранении данных: ' + response.message, 'error');
+return false;
+}
+} catch (error) {
+showNotification('Ошибка при сохранении: ' + error.message, 'error');
+return false;
+}
+}
+
+function generateBarcode(studyDate, studyId) {
+const dateStr = (studyDate && studyDate.trim()) ? studyDate : new Date().toISOString().split('T')[0];
+const formattedDate = dateStr.replace(/-/g, '');
+return `${formattedDate}-${studyId}`;
+}
+
+async function updateBarcodeInDatabase(studyId, barcode) {
+try {
+const response = await fetch('/api/update_study_barcode', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+},
+body: JSON.stringify({ study_id: studyId, barcode: barcode })
+}).then(r => r.json());
+if (response.status !== "success") {
+console.error('Ошибка обновления barcode:', response.message);
+}
+} catch (error) {
+console.error('Ошибка при обновлении barcode:', error);
+}
+}
+
+async function fillPatientForm(patient) {
+const isFormFilled = document.getElementById('patientLastName').value ||
+document.getElementById('patientFirstName').value ||
+document.getElementById('birthDate').value;
+if (isFormFilled) {
+confirmModal.style.display = 'block';
+return new Promise((resolve) => {
+document.getElementById('confirmSave').onclick = async () => {
+const saved = await savePatientData();
+confirmModal.style.display = 'none';
+if (saved) {
+resetForm();
+fillPatientData(patient);
+}
+resolve();
+};
+document.getElementById('confirmCancel').onclick = () => {
+confirmModal.style.display = 'none';
+resetForm();
+fillPatientData(patient);
+resolve();
+};
+});
+} else {
+fillPatientData(patient);
+}
+}
+
+function resetForm() {
+document.getElementById('patientLastName').value = '';
+document.getElementById('patientFirstName').value = '';
+document.getElementById('patientMiddleName').value = '';
+document.getElementById('birthDate').value = '';
+document.getElementById('snils').value = '';
+document.getElementById('address').value = '';
+$('#raion').val('').trigger('change');
+document.getElementById('insurance').value = '';
+document.getElementById('is_employed').checked = false;
+document.getElementById('is_dismissed').value = '';
+document.getElementById('ambulatory_card_number').value = '';
+clearMaterialFields();
+clearStudyFields();
+}
+
+async function fillPatientData(patient) {
+clearMaterialFields();
+clearStudyFields();
+document.getElementById('caseNumber').value = '';
+document.getElementById('direction').value = '';
+document.getElementById('patientLastName').value = patient.surname || '';
+document.getElementById('patientFirstName').value = patient.firstname || '';
+document.getElementById('patientMiddleName').value = patient.patronymic || '';
+document.getElementById('birthDate').value = normalizeDate(patient.birth_date) || '';
+document.getElementById('snils').value = normalizeSnils(patient.PersonSnils_Snils || '') || '';
+document.getElementById('address').value = patient.UAddress_Address || '';
+document.getElementById('is_employed').checked = patient.is_employed || false;
+calculateAge();
+try {
+const checkResponse = await fetch(`/api/check_patient_in_db?surname=${encodeURIComponent(patient.surname)}&firstname=${encodeURIComponent(patient.firstname)}&patronymic=${encodeURIComponent(patient.patronymic)}&birth_date=${encodeURIComponent(patient.birth_date)}`).then(r => r.json());
+if (checkResponse.status === "success" && checkResponse.patient_id) {
+currentPatientId = checkResponse.patient_id;
+const patientDataResponse = await fetch(`/api/get_patient_data?patient_id=${checkResponse.patient_id}`).then(r => r.json());
+if (patientDataResponse.status === "success" && patientDataResponse.data) {
+fillPatientFields(patientDataResponse.data);
+await loadPatientStudies(checkResponse.patient_id);
+showNotification('Пациент найден в базе. Данные загружены.');
+} else {
+document.getElementById('studiesTableBody').innerHTML = '<tr><td colspan="9">Пациент не найден</td></tr>';
+showNotification('Пациент найден, но данные или исследования отсутствуют.', 'error');
+}
+} else {
+currentPatientId = null;
+document.getElementById('studiesTableBody').innerHTML = '<tr><td colspan="9">Пациент не найден</td></tr>';
+showNotification('Пациент не найден в базе.', 'error');
+}
+} catch (error) {
+showNotification('Ошибка при загрузке данных пациента: ' + error.message, 'error');
+}
+patientModal.style.display = 'none';
+}
+
+async function loadPatientStudies(patientId) {
+const tbody = document.getElementById('studiesTableBody');
+tbody.innerHTML = '';
+if (!patientId) {
+tbody.innerHTML = '<tr><td colspan="9">Пациент не выбран</td></tr>';
+return;
+}
+try {
+const response = await fetch(`/api/get_patient_studies?patient_id=${patientId}`).then(r => r.json());
+if (response.status === "success" && response.data && response.data.length > 0) {
+const physicianResponse = await fetch('/api/get_physician_data').then(r => r.json());
+const physicians = physicianResponse.status === "success" ? physicianResponse.data : [];
+const physicianMap = new Map(physicians.map(p => [p.id, p.full_name]));
+const labTechMap = new Map(physicians.map(p => [p.id, p.full_name]));
+console.log('Physician response:', physicianResponse);
+console.log('Physician data:', physicians);
+console.log('Physician map:', Array.from(physicianMap.entries()));
+if (physicianResponse.status !== "success") {
+console.error('Error loading physicians:', physicianResponse.message);
+}
+if (physicians.length === 0) {
+console.warn('No physician data loaded!');
+} else {
+console.log('Loaded', physicians.length, 'physicians');
+}
+response.data.forEach(study => {
+console.log('Study data:', study);
+console.log('Doctor ID:', study.doctor_id);
+console.log('Lab Tech ID:', study.lab_technician_id);
+const row = document.createElement('tr');
+const isFluid = study.is_fluid ? '✓' : '✗';
+const isReviewed = study.is_reviewed ? '✓' : '';
+const doctorId = study.doctor_id;
+const labTechId = study.lab_technician_id;
+const doctorIdNum = parseInt(doctorId);
+const labTechIdNum = parseInt(labTechId);
+console.log('Looking for doctor ID:', doctorId, 'as number:', doctorIdNum, 'in map:', Array.from(physicianMap.keys()));
+console.log('Looking for lab tech ID:', labTechId, 'as number:', labTechIdNum, 'in map:', Array.from(labTechMap.keys()));
+const doctorName = physicianMap.get(doctorIdNum) || physicianMap.get(doctorId) || (doctorId ? `ID: ${doctorId}` : 'Не указан');
+const labTechName = labTechMap.get(labTechIdNum) || labTechMap.get(labTechId) || (labTechId ? `ID: ${labTechId}` : 'Не указан');
+console.log('Mapped doctor name:', doctorName);
+console.log('Mapped lab tech name:', labTechName);
+row.innerHTML = `
+<td>${study.id || ''}</td>
+<td>${study.study_date || ''}</td>
+<td>${doctorName || ''}</td>
+<td>${labTechName || ''}</td>
+<td>${isFluid}</td>
+<td>${study.barcode || ''}</td>
+<td>${isReviewed}</td>
+<td><button class="barcode-btn" data-study-id="${study.id}">Штрих-код</button></td>
+<td><button data-study-id="${study.id}">Выбрать</button></td>
+`;
+tbody.appendChild(row);
+});
+} else {
+tbody.innerHTML = '<tr><td colspan="9">Исследования не найдены</td></tr>';
+}
+} catch (error) {
+console.error('Error loading studies:', error);
+tbody.innerHTML = '<tr><td colspan="9">Ошибка загрузки исследований</td></tr>';
+}
+}
+
+async function loadStudyData(studyId) {
+currentStudyId = studyId;
+clearMaterialFields();
+clearStudyFields();
+try {
+const response = await fetch(`/api/get_study_data?study_id=${studyId}`).then(r => r.json());
+if (response.status === "success" && response.data) {
+const { patient, material, study } = response.data;
+if (patient) fillPatientFields(patient);
+if (material) fillMaterialFields(material);
+if (study) fillStudyFields(study);
+} else {
+alert('Ошибка загрузки данных исследования: ' + (response.message || 'Нет данных'));
+}
+} catch (error) {
+alert('Ошибка при загрузке данных: ' + error.message);
+}
+}
+
+// 🔧 ИЗМЕНЕНИЕ: Функция для редактирования исследования из общей таблицы
+async function editStudy(studyId) {
+// Закрываем модальное окно общих данных
+studiesOverviewModal.style.display = 'none';
+// Загружаем данные исследования в основную форму
+await loadStudyData(studyId);
+// Показываем уведомление
+showNotification(`Исследование ${studyId} загружено для редактирования`);
+// Прокручиваем к форме
+window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function showBarcodeModal(studyId) {
+try {
+const response = await fetch(`/api/get_study_data?study_id=${studyId}`).then(r => r.json());
+if (response.status === "success" && response.data && response.data.study) {
+const barcodeValue = response.data.study.barcode;
+if (!barcodeValue) {
+alert('Штрих-код для этого исследования не задан');
+return;
+}
+document.getElementById('barcodeValue').textContent = barcodeValue;
+JsBarcode("#barcodeCanvas", barcodeValue, {
+format: "CODE128",
+width: 2,
+height: 100,
+displayValue: false
+});
+barcodeModal.style.display = 'block';
+} else {
+alert('Не удалось загрузить данные исследования');
+}
+} catch (error) {
+alert('Ошибка при загрузке данных: ' + error.message);
+}
+}
+
+function downloadBarcode() {
+const canvas = document.getElementById('barcodeCanvas');
+const barcodeValue = document.getElementById('barcodeValue').textContent;
+const link = document.createElement('a');
+link.download = `barcode_${barcodeValue}.png`;
+link.href = canvas.toDataURL('image/png');
+link.click();
+}
+
+function printBarcode() {
+const barcodeCanvas = document.getElementById('barcodeCanvas');
+const barcodeValue = document.getElementById('barcodeValue').textContent;
+const printWindow = window.open('', '_blank', 'width=1280,height=720');
+printWindow.document.write(`
+<html>
+<head>
+<title>Печать штрих-кода</title>
+<style>
+body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+canvas { margin-bottom: 20px; }
+</style>
+</head>
+<body>
+<canvas id="printCanvas"></canvas>
+<div>${barcodeValue}</div>
+</body>
+</html>
+`);
+const printCanvas = printWindow.document.getElementById('printCanvas');
+JsBarcode(printCanvas, barcodeValue, { format: "CODE128", width: 2, height: 100, displayValue: false });
+printWindow.document.close();
+printWindow.onload = function() {
+printWindow.focus();
+printWindow.print();
+printWindow.close();
+};
+}
+
+function fillPatientFields(patient) {
+document.getElementById('patientLastName').value = patient.full_name ? patient.full_name.split(' ')[0] : '';
+document.getElementById('patientFirstName').value = patient.full_name ? patient.full_name.split(' ')[1] : '';
+document.getElementById('patientMiddleName').value = patient.full_name ? patient.full_name.split(' ')[2] : '';
+document.getElementById('birthDate').value = normalizeDate(patient.birthdate) || '';
+document.getElementById('snils').value = normalizeSnils(patient.snils || '') || '';
+document.getElementById('address').value = patient.address || '';
+if (patient.district_id) {
+$('#raion').val(patient.district_id).trigger('change');
+} else {
+$('#raion').val('').trigger('change');
+}
+document.getElementById('insurance').value = patient.insurance_policy_number || '';
+document.getElementById('is_employed').checked = patient.is_employed || false;
+document.getElementById('is_dismissed').value = normalizeDate(patient.dismissal_date) || '';
+document.getElementById('ambulatory_card_number').value = patient.ambulatory_card_number || '';
+calculateAge();
+}
+
+function fillMaterialFields(material) {
+document.getElementById('direction_number').value = material.direction_number || '';
+if (material.medical_organization_id) {
+const optionExists = $(`#medical_organization_id option[value="${material.medical_organization_id}"]`).length > 0;
+if (optionExists) {
+$('#medical_organization_id').val(material.medical_organization_id).trigger('change');
+console.log(`Организация с ID ${material.medical_organization_id} найдена в списке`);
+} else {
+$('#medical_organization_id').val('').trigger('change');
+console.warn(`Организация с ID ${material.medical_organization_id} не найдена в списке организаций`);
+}
+} else {
+$('#medical_organization_id').val('1.2.643.5.1.13.13.12.2.45.4286').trigger('change');
+console.log('medical_organization_id отсутствует в данных материала, установлено значение по умолчанию');
+}
+document.getElementById('receipt_date').value = normalizeDate(material.receipt_date) || '';
+document.getElementById('slides_count').value = material.slides_count || '';
+document.getElementById('department_id').value = material.department_id || '';
+const referringDoctorId = material.referring_doctor_id;
+if (referringDoctorId) {
+const option = $('#referring_doctor_id option[value="' + referringDoctorId + '"]');
+if (option.length > 0) {
+$('#referring_doctor_id').val(referringDoctorId).trigger('change');
+} else {
+fetch('/api/get_referring_doctors')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success") {
+const found = response.data.find(item => String(item.id) === String(referringDoctorId));
+if (found) {
+const newOption = new Option(found.name, found.id, true, true);
+$('#referring_doctor_id').append(newOption).trigger('change');
+} else {
+$('#referring_doctor_id').val(referringDoctorId).trigger('change');
+}
+}
+});
+}
+} else {
+$('#referring_doctor_id').val('').trigger('change');
+}
+$('#research_type_id').val(material.research_type_id || '').trigger('change');
+if (material.clinical_diagnosis_id && material.clinical_diagnosis_text) {
+const option = new Option(material.clinical_diagnosis_text, material.clinical_diagnosis_id, true, true);
+$('#clinical_diagnosis_id').append(option).trigger('change');
+}
+if (material.localization_id && material.localization_text) {
+const option = new Option(material.localization_text, material.localization_id, true, true);
+$('#localization_id').append(option).trigger('change');
+} else {
+$('#localization_id').val(material.localization_id || '').trigger('change');
+}
+if (material.ciphers_id) {
+const exists = $(`#ciphers_id option[value="${material.ciphers_id}"]`).length > 0;
+if (!exists) {
+const option = new Option(material.ciphers_id, material.ciphers_id, true, true);
+$('#ciphers_id').append(option).trigger('change');
+} else {
+$('#ciphers_id').val(material.ciphers_id).trigger('change');
+}
+} else {
+$('#ciphers_id').val('').trigger('change');
+}
+if (material.department_id && material.department_text) {
+const optionExists = $(`#department_id option[value="${material.department_id}"]`).length > 0;
+if (!optionExists) {
+const option = new Option(material.department_text, material.department_id, true, true);
+$('#department_id').append(option).trigger('change');
+} else {
+$('#department_id').val(material.department_id).trigger('change');
+}
+} else {
+$('#department_id').val('').trigger('change');
+}
+$('#material_type_id').val(material.material_type_id || '').trigger('change');
+document.getElementById('histologically_confirmed').checked = material.histologically_confirmed || false;
+document.getElementById('conclusion_matched').checked = material.conclusion_matched || false;
+if (material.gisolog_comment) {
+let found = false;
+$('#gist_matik option').each(function() {
+if ($(this).val() == material.gisolog_comment) {
+found = true;
+return false;
+}
+});
+if (!found) {
+const newOption = new Option(material.gisolog_comment_text || material.gisolog_comment, material.gisolog_comment, true, true);
+$('#gist_matik').append(newOption).trigger('change');
+} else {
+$('#gist_matik').val(material.gisolog_comment).trigger('change');
+}
+} else {
+$('#gist_matik').val('').trigger('change');
+}
+}
+
+function clearMaterialFields() {
+document.getElementById('direction_number').value = '';
+$('#medical_organization_id').val('1.2.643.5.1.13.13.12.2.45.4286').trigger('change');
+document.getElementById('receipt_date').value = '';
+document.getElementById('slides_count').value = '';
+$('#department_id').val('').trigger('change');
+$('#referring_doctor_id').val('').trigger('change');
+$('#research_type_id').val('').trigger('change');
+$('#clinical_diagnosis_id').val('').trigger('change');
+$('#localization_id').val('').trigger('change');
+$('#material_type_id').val('').trigger('change');
+$('#ciphers_id').val('').trigger('change');
+document.getElementById('histologically_confirmed').checked = false;
+document.getElementById('conclusion_matched').checked = false;
+$('#gist_matik').val('').trigger('change');
+}
+
+function fillStudyFields(study) {
+document.getElementById('study_date').value = normalizeDate(study.study_date) || '';
+$('#doctor_id').val(study.doctor_id || '').trigger('change');
+$('#lab_technician_id').val(study.lab_technician_id || '').trigger('change');
+$('#zno_dno').val(study.zno_dno || '').trigger('change');
+$('#service_id').val(study.service_id || '').trigger('change');
+$('#urgency_id').val(study.urgency_id || '').trigger('change');
+$('#study_type_id').val(study.study_type_id || '').trigger('change');
+document.getElementById('slides_count_study').value = study.slides_count || '';
+document.getElementById('transferred_to_doctor').value = study.transferred_to_doctor || '';
+document.getElementById('is_fluid').checked = study.is_fluid || false;
+$('#bethesda_term_id').val(study.bethesda_term_id || '').trigger('change');
+document.getElementById('conclusion_text').value = study.conclusion_text || '';
+if (typeof autosizeConclusion === 'function') { autosizeConclusion(); }
+$('#comment').val(study.comment || '').trigger('change');
+const peresmotrCheckbox = document.getElementById('peresmotr');
+peresmotrCheckbox.checked = false;
+if (study.is_reviewed) {
+peresmotrCheckbox.disabled = true;
+peresmotrCheckbox.title = "Невозможно создать копию исследования, которое уже является копией";
+} else {
+peresmotrCheckbox.disabled = false;
+peresmotrCheckbox.title = "Создать копию исследования для пересмотра";
+}
+updateCreateCopyVisibility();
+}
+
+function clearStudyFields() {
+document.getElementById('study_date').value = '';
+document.getElementById('conclusion_text').value = '';
+if (typeof autosizeConclusion === 'function') { autosizeConclusion(); }
+$('#doctor_id').val('').trigger('change');
+$('#lab_technician_id').val('').trigger('change');
+$('#zno_dno').val('').trigger('change');
+$('#service_id').val('').trigger('change');
+$('#urgency_id').val('').trigger('change');
+$('#study_type_id').val('').trigger('change');
+document.getElementById('slides_count_study').value = '';
+document.getElementById('transferred_to_doctor').value = '';
+document.getElementById('is_fluid').checked = false;
+$('#bethesda_term_id').val('').trigger('change');
+$('#comment').val('').trigger('change');
+const peresmotrCheckbox = document.getElementById('peresmotr');
+peresmotrCheckbox.checked = false;
+peresmotrCheckbox.disabled = false;
+peresmotrCheckbox.title = "";
+updateCreateCopyVisibility();
+}
+
+function normalizeDate(dateStr) {
+if (!dateStr || dateStr === 'None') return '';
+if (typeof dateStr !== 'string') dateStr = String(dateStr);
+const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
+if (isoDatePattern.test(dateStr)) return dateStr;
+const parts = dateStr.split('-');
+if (parts.length === 3) {
+const [day, month, year] = parts;
+return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+}
+return '';
+}
+
+function normalizeSnils(val) {
+if (!val) return '';
+const digits = String(val).replace(/\D/g, '');
+if (digits.length === 10) return '0' + digits;
+return digits || val;
+}
+
+searchForm.addEventListener('submit', async function(event) {
+event.preventDefault();
+const firstname = document.getElementById('modalFirstName').value.trim();
+const secondname = document.getElementById('modalSecondName').value.trim();
+const patronymic = document.getElementById('modalMiddleName').value.trim();
+const birthdate = document.getElementById('modalBirthDate').value;
+if (!firstname || !secondname || !patronymic) {
+searchMessage.textContent = 'Заполните все обязательные поля.';
+searchMessage.style.color = 'red';
+return;
+}
+searchMessage.textContent = 'Поиск...';
+searchMessage.style.color = 'blue';
+try {
+const response = await fetch(`/api/search_patient?surname=${encodeURIComponent(secondname)}&firstname=${encodeURIComponent(firstname)}&patronymic=${encodeURIComponent(patronymic)}&birthdate=${encodeURIComponent(birthdate)}`).then(r => r.json());
+if (response.status === "success") {
+const persons = response.data;
+resultsTableBody.innerHTML = '';
+if (persons.length === 0) {
+searchMessage.textContent = 'Пациенты не найдены.';
+searchMessage.style.color = 'orange';
+return;
+}
+persons.forEach((person, index) => {
+const row = document.createElement('tr');
+row.innerHTML = `
+<td>${person.surname || '—'}</td>
+<td>${person.firstname || '—'}</td>
+<td>${person.patronymic || '—'}</td>
+<td>${formatDate(person.birth_date) || '—'}</td>
+<td><button class="select-patient-btn" data-patient-index="${index}">Выбрать</button></td>
+`;
+row.dataset.patient = JSON.stringify(person);
+resultsTableBody.appendChild(row);
+});
+searchMessage.textContent = `Найдено ${persons.length} пациентов.`;
+searchMessage.style.color = 'green';
+} else {
+searchMessage.textContent = response.message || 'Ошибка при поиске.';
+searchMessage.style.color = 'red';
+}
+} catch (error) {
+searchMessage.textContent = 'Ошибка при поиске: ' + error.message;
+searchMessage.style.color = 'red';
+}
+});
+
+resultsTableBody.addEventListener('click', function(event) {
+const button = event.target.closest('.select-patient-btn');
+if (button) {
+const row = button.closest('tr');
+const patientData = JSON.parse(row.dataset.patient);
+fillPatientForm(patientData);
+}
+});
+
+function formatDate(dateStr) {
+if (!dateStr) return '';
+const parts = dateStr.split('-');
+if (parts.length !== 3) return dateStr;
+const [year, month, day] = parts;
+return `${day}/${month}/${year}`;
+}
+
+function calculateAge() {
+const birthDateInput = document.getElementById('birthDate');
+const ageInput = document.getElementById('age');
+if (birthDateInput.value) {
+const birthDate = new Date(birthDateInput.value);
+const today = new Date();
+let age = today.getFullYear() - birthDate.getFullYear();
+const monthDiff = today.getMonth() - birthDate.getMonth();
+if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age--;
+ageInput.value = age + ' ' + getAgeSuffix(age);
+} else {
+ageInput.value = '';
+}
+}
+
+function getAgeSuffix(age) {
+if (age % 10 === 1 && age % 100 !== 11) return 'год';
+else if ([2, 3, 4].includes(age % 10) && ![12, 13, 14].includes(age % 100)) return 'года';
+else return 'лет';
+}
+
+async function initializeFilters() {
+const serviceFilter = $('#serviceFilter');
+serviceFilter.select2({
+placeholder: "Все услуги",
+allowClear: true,
+width: '200px'
+});
+try {
+const serviceResponse = await fetch('/api/get_services_data').then(r => r.json());
+if (serviceResponse.status === "success") {
+serviceFilter.empty();
+serviceFilter.append(new Option("Все услуги", "", true, true));
+$.each(serviceResponse.data, function(index, item) {
+serviceFilter.append(new Option(item.name, item.id));
+});
+}
+} catch (error) {
+console.error('Ошибка при загрузке списка услуг:', error);
+}
+}
+
+async function loadAllStudies() {
+const tbody = document.getElementById('overviewTableBody');
+const studiesCountValue = document.getElementById('studiesCountValue');
+tbody.innerHTML = '<tr><td colspan="8">Загрузка...</td></tr>';
+const dateFilter = document.getElementById('dateFilter').value;
+const dateFrom = document.getElementById('dateFrom').value;
+const dateTo = document.getElementById('dateTo').value;
+const service = document.getElementById('serviceFilter').value || null;
+if (dateFilter === 'custom' && (!dateFrom || !dateTo)) {
+tbody.innerHTML = '<tr><td colspan="8">Укажите обе даты для произвольного диапазона</td></tr>';
+studiesCountValue.textContent = '0';
+return;
+}
+try {
+const response = await fetch(`/api/get_all_studies?date_filter=${dateFilter}&date_from=${dateFrom}&date_to=${dateTo}&service=${service || ''}`).then(r => r.json());
+if (response.status === "success" && response.data) {
+const physicianResponse = await fetch('/api/get_physician_data').then(r => r.json());
+const physicians = physicianResponse.status === "success" ? physicianResponse.data : [];
+const physicianMap = new Map(physicians.map(p => [p.id, p.full_name]));
+tbody.innerHTML = '';
+response.data.forEach(study => {
+const row = document.createElement('tr');
+const isFluid = study.is_fluid ? '✓' : '✗';
+const doctorId = study.doctor_id;
+const labTechId = study.lab_technician_id;
+const doctorIdNum = parseInt(doctorId);
+const labTechIdNum = parseInt(labTechId);
+const doctorName = physicianMap.get(doctorIdNum) || physicianMap.get(doctorId) || (doctorId ? `ID: ${doctorId}` : 'Не указан');
+const labTechName = physicianMap.get(labTechIdNum) || physicianMap.get(labTechId) || (labTechId ? `ID: ${labTechId}` : 'Не указан');
+row.innerHTML = `
+<td>${study.id || ''}</td>
+<td>${study.study_date || ''}</td>
+<td>${labTechName}</td>
+<td>${isFluid}</td>
+<td>${study.barcode || ''}</td>
+<td><button class="edit-btn" data-study-id="${study.id}">Редактировать</button></td>
+<td><button class="delete-btn" data-study-id="${study.id}" data-material-id="${study.material_id || ''}">Удалить</button></td>
+<td><button class="view-details-btn" data-study-id="${study.id}">Посмотреть</button></td>
+`;
+tbody.appendChild(row);
+});
+studiesCountValue.textContent = response.data.length;
+document.querySelectorAll('.view-details-btn').forEach(button => {
+button.addEventListener('click', async function() {
+const studyId = this.getAttribute('data-study-id');
+await showStudyDetails(studyId);
+});
+});
+document.querySelectorAll('.delete-btn').forEach(button => {
+button.addEventListener('click', async function() {
+const studyId = this.getAttribute('data-study-id');
+const materialId = this.getAttribute('data-material-id');
+showDeleteConfirmModal(studyId, materialId);
+});
+});
+// 🔧 ИЗМЕНЕНИЕ: Добавляем обработчик для кнопки "Редактировать"
+document.querySelectorAll('.edit-btn').forEach(button => {
+button.addEventListener('click', async function() {
+const studyId = this.getAttribute('data-study-id');
+await editStudy(studyId);
+});
+});
+} else {
+tbody.innerHTML = '<tr><td colspan="8">Данные не найдены</td></tr>';
+studiesCountValue.textContent = '0';
+}
+} catch (error) {
+tbody.innerHTML = '<tr><td colspan="8">Ошибка загрузки данных</td></tr>';
+studiesCountValue.textContent = '0';
+console.error('Ошибка:', error);
+}
+}
+
+async function searchByStudyId(studyId) {
+const tbody = document.getElementById('overviewTableBody');
+const studiesCountValue = document.getElementById('studiesCountValue');
+tbody.innerHTML = '<tr><td colspan="8">Поиск...</td></tr>';
+try {
+const response = await fetch(`/api/get_study_data?study_id=${studyId}`).then(r => r.json());
+if (response.status === "success" && response.data && response.data.study) {
+const study = response.data.study;
+const physicianResponse = await fetch('/api/get_physician_data').then(r => r.json());
+const physicians = physicianResponse.status === "success" ? physicianResponse.data : [];
+const physicianMap = new Map(physicians.map(p => [p.id, p.full_name]));
+tbody.innerHTML = '';
+const row = document.createElement('tr');
+const isFluid = study.is_fluid ? '✓' : '✗';
+const doctorName = physicianMap.get(parseInt(study.doctor_id)) || physicianMap.get(study.doctor_id) || 'Не указан';
+const labTechName = physicianMap.get(parseInt(study.lab_technician_id)) || physicianMap.get(study.lab_technician_id) || 'Не указан';
+row.innerHTML = `
+<td>${studyId}</td>
+<td>${study.study_date || ''}</td>
+<td>${labTechName}</td>
+<td>${isFluid}</td>
+<td>${study.barcode || ''}</td>
+<td><button class="edit-btn" data-study-id="${studyId}">Редактировать</button></td>
+<td><button class="delete-btn" data-study-id="${studyId}" data-material-id="${response.data.material?.id || ''}">Удалить</button></td>
+<td><button class="view-details-btn" data-study-id="${studyId}">Посмотреть</button></td>
+`;
+tbody.appendChild(row);
+studiesCountValue.textContent = '1';
+document.querySelectorAll('.view-details-btn').forEach(button => {
+button.addEventListener('click', async function() {
+const sid = this.getAttribute('data-study-id');
+await showStudyDetails(sid);
+});
+});
+document.querySelectorAll('.delete-btn').forEach(button => {
+button.addEventListener('click', async function() {
+const sid = this.getAttribute('data-study-id');
+const mid = this.getAttribute('data-material-id');
+showDeleteConfirmModal(sid, mid);
+});
+});
+// 🔧 ИЗМЕНЕНИЕ: Добавляем обработчик для кнопки "Редактировать"
+document.querySelectorAll('.edit-btn').forEach(button => {
+button.addEventListener('click', async function() {
+const sid = this.getAttribute('data-study-id');
+await editStudy(sid);
+});
+});
+} else {
+tbody.innerHTML = '<tr><td colspan="8">Исследование не найдено</td></tr>';
+studiesCountValue.textContent = '0';
+}
+} catch (error) {
+tbody.innerHTML = '<tr><td colspan="8">Ошибка поиска</td></tr>';
+studiesCountValue.textContent = '0';
+console.error('Ошибка:', error);
+}
+}
+
+async function deleteStudy(studyId, materialId) {
+try {
+const response = await fetch('/api/delete_study', {
+method: 'DELETE',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({study_id: studyId, material_id: materialId})
+});
+const result = await response.json();
+if (result.status === 'success') {
+showNotification('Исследование успешно удалено', 'success');
+await loadAllStudies();
+} else {
+showNotification('Ошибка: ' + result.message, 'error');
+}
+} catch (error) {
+console.error('Ошибка удаления:', error);
+showNotification('Ошибка при удалении исследования', 'error');
+}
+}
+
+let pendingDeleteStudyId = null;
+let pendingDeleteMaterialId = null;
+const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+function showDeleteConfirmModal(studyId, materialId) {
+pendingDeleteStudyId = studyId;
+pendingDeleteMaterialId = materialId;
+document.getElementById('deleteStudyIdDisplay').textContent = `ID: ${studyId}`;
+deleteConfirmModal.style.display = 'block';
+}
+document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+deleteConfirmModal.style.display = 'none';
+if (pendingDeleteStudyId) {
+await deleteStudy(pendingDeleteStudyId, pendingDeleteMaterialId);
+pendingDeleteStudyId = null;
+pendingDeleteMaterialId = null;
+}
+});
+document.getElementById('cancelDeleteBtn').addEventListener('click', function() {
+deleteConfirmModal.style.display = 'none';
+pendingDeleteStudyId = null;
+pendingDeleteMaterialId = null;
+});
+deleteConfirmModal.addEventListener('click', function(event) {
+if (event.target === deleteConfirmModal) {
+deleteConfirmModal.style.display = 'none';
+pendingDeleteStudyId = null;
+pendingDeleteMaterialId = null;
+}
+});
+
+async function showStudyDetails(studyId) {
+const contentDiv = document.getElementById('studyDetailsContent');
+contentDiv.innerHTML = 'Загрузка...';
+studyDetailsModal.style.display = 'block';
+try {
+console.log('Loading study details for ID:', studyId);
+const response = await fetch(`/api/get_study_data?study_id=${studyId}`).then(r => r.json());
+console.log('Study data response:', response);
+if (response.status === 'success' && response.data) {
+const { patient, material, study } = response.data;
+console.log('Loading additional data for study:', study);
+console.log('Loading additional data for material:', material);
+const [serviceResponse, studyTypeResponse, researchTypeResponse,
+materialTypeResponse, bethesdaResponse, commentResponse,
+doctorResponse, labTechResponse, transferredDoctorResponse] = await Promise.all([
+study?.service_id ? fetch(`/api/get_service_name_by_id?service_id=${study.service_id}`).then(r => r.json()).catch(e => ({status: 'error', message: e.message})) : Promise.resolve({status: 'error'}),
+study?.study_type_id ? fetch(`/api/get_study_type_name_by_id?study_type_id=${study.study_type_id}`).then(r => r.json()).catch(e => ({status: 'error', message: e.message})) : Promise.resolve({status: 'error'}),
+material?.research_type_id ? fetch(`/api/get_research_type_name_by_id?research_type_id=${material.research_type_id}`).then(r => r.json()).catch(e => ({status: 'error', message: e.message})) : Promise.resolve({status: 'error'}),
+material?.material_type_id ? fetch(`/api/get_material_type_name_by_id?material_type_id=${material.material_type_id}`).then(r => r.json()).catch(e => ({status: 'error', message: e.message})) : Promise.resolve({status: 'error'}),
+study?.bethesda_term_id && study.bethesda_term_id !== 'null' ? fetch(`/api/get_bethesda_term_name_by_id?bethesda_term_id=${study.bethesda_term_id}`).then(r => r.json()).catch(e => ({status: 'error', message: e.message})) : Promise.resolve({status: 'error'}),
+study?.comment && study.comment !== 'null' ? fetch(`/api/get_comment_name_by_id?comment_id=${study.comment}`).then(r => r.json()).catch(e => ({status: 'error', message: e.message})) : Promise.resolve({status: 'error'}),
+study?.doctor_id ? fetch(`/api/get_physician_name_by_id?physician_id=${study.doctor_id}`).then(r => r.json()).catch(e => ({status: 'error', message: e.message})) : Promise.resolve({status: 'error'}),
+study?.lab_technician_id ? fetch(`/api/get_physician_name_by_id?physician_id=${study.lab_technician_id}`).then(r => r.json()).catch(e => ({status: 'error', message: e.message})) : Promise.resolve({status: 'error'}),
+study?.transferred_to_doctor ? fetch(`/api/get_physician_name_by_id?physician_id=${study.transferred_to_doctor}`).then(r => r.json()).catch(e => ({status: 'error', message: e.message})) : Promise.resolve({status: 'error'})
+]);
+console.log('API responses:', {
+serviceResponse, studyTypeResponse, researchTypeResponse,
+materialTypeResponse, bethesdaResponse, commentResponse,
+doctorResponse, labTechResponse, transferredDoctorResponse
+});
+let referringDoctorName = '';
+if (material?.referring_doctor_id) {
+try {
+const referringDoctorResponse = await fetch(`/api/get_physician_name_by_id?physician_id=${material.referring_doctor_id}`).then(r => r.json());
+if (referringDoctorResponse.status === 'success') {
+referringDoctorName = referringDoctorResponse.name;
+} else {
+referringDoctorName = 'Не указан';
+}
+} catch (error) {
+console.error('Error loading referring doctor:', error);
+referringDoctorName = 'Не указан';
+}
+}
+const isDismissed = patient?.dismissal_date ? 'Да' : 'Нет';
+const content = `
+<div class="study-details">
+<h3>Данные пациента</h3>
+<p><strong>ФИО:</strong> ${patient?.full_name || 'Не указано'}</p>
+<p><strong>СНИЛС:</strong> ${patient?.snils || 'Не указан'}</p>
+<p><strong>Район ID:</strong> ${patient?.district_id || 'Не указан'}</p>
+<p><strong>Адрес:</strong> ${patient?.address || 'Не указан'}</p>
+<p><strong>Дата рождения:</strong> ${patient?.birthdate || 'Не указана'}</p>
+<p><strong>Номер страхового полиса:</strong> ${patient?.insurance_policy_number || 'Не указан'}</p>
+<p><strong>Номер амбулаторной карты:</strong> ${patient?.ambulatory_card_number || 'Не указан'}</p>
+<p><strong>Работающий:</strong> ${patient?.is_employed ? 'Да' : 'Нет'}</p>
+<p><strong>Снят с учета:</strong> ${isDismissed}</p>
+<p><strong>Дата снятия с учета:</strong> ${patient?.dismissal_date || 'Не указана'}</p>
+<h3>Данные материала</h3>
+<p><strong>Номер направления:</strong> ${material?.direction_number || 'Не указан'}</p>
+<p><strong>Мед. организация:</strong> ${material?.medical_organization_text || 'Не указана'}</p>
+<p><strong>Дата поступления:</strong> ${material?.receipt_date || 'Не указана'}</p>
+<p><strong>Количество стеклопрепаратов:</strong> ${material?.slides_count || 'Не указано'}</p>
+<p><strong>Отделение:</strong> ${material?.department_text || 'Не указано'}</p>
+<p><strong>Врач-направитель:</strong> ${referringDoctorName || 'Не указан'}</p>
+<p><strong>Характер исследования:</strong> ${researchTypeResponse.status === 'success' ? researchTypeResponse.name : 'Не указан'}</p>
+<p><strong>Клинический диагноз:</strong> ${material?.clinical_diagnosis_text || 'Не указан'}</p>
+<p><strong>Локализация:</strong> ${material?.localization_text || 'Не указана'}</p>
+<p><strong>Характер материала:</strong> ${materialTypeResponse.status === 'success' ? materialTypeResponse.name : 'Не указан'}</p>
+<p><strong>Подтвержден гистологически:</strong> ${material?.histologically_confirmed ? 'Да' : 'Нет'}</p>
+<p><strong>Заключение совпало:</strong> ${material?.conclusion_matched ? 'Да' : 'Нет'}</p>
+<h3>Данные исследования</h3>
+<p><strong>Дата исследования:</strong> ${study?.study_date || 'Не указана'}</p>
+<p><strong>Врач:</strong> ${doctorResponse.status === 'success' ? doctorResponse.name : 'Не указан'}</p>
+<p><strong>Лаборант:</strong> ${labTechResponse.status === 'success' ? labTechResponse.name : 'Не указан'}</p>
+<p><strong>ЗНО/ДНО:</strong> ${study?.zno_dno || 'Не указано'}</p>
+<p><strong>Услуга:</strong> ${serviceResponse.status === 'success' ? serviceResponse.name : 'Не указана'}</p>
+<p><strong>Тип исследования:</strong> ${studyTypeResponse.status === 'success' ? studyTypeResponse.name : 'Не указан'}</p>
+<p><strong>Жидкостная:</strong> ${study?.is_fluid ? 'Да' : 'Нет'}</p>
+<p><strong>Количество стекол:</strong> ${study?.slides_count || 'Не указано'}</p>
+<p><strong>Передано врачу:</strong> ${transferredDoctorResponse.status === 'success' ? transferredDoctorResponse.name : 'Не указан'}</p>
+<p><strong>Заключение:</strong> ${[
+bethesdaResponse.status === 'success' ? bethesdaResponse.name : null,
+(study?.conclusion_text && study.conclusion_text.trim()) ? study.conclusion_text : null
+].filter(Boolean).join(': ') || 'Не указано'}</p>
+<p><strong>Комментарий:</strong> ${commentResponse.status === 'success' ? commentResponse.name : 'Не указан'}</p>
+<p><strong>Штрих-код:</strong> ${study?.barcode || 'Не указан'}</p>
+</div>
+`;
+contentDiv.innerHTML = content;
+} else {
+contentDiv.innerHTML = 'Данные не найдены';
+}
+} catch (error) {
+console.error('Ошибка при загрузке деталей исследования:', error);
+contentDiv.innerHTML = `Ошибка при загрузке данных: ${error.message}`;
+}
+}
+
+async function searchByCaseNumber(caseNumber) {
+try {
+const response = await fetch(`/api/search_study_by_case_number?case_number=${encodeURIComponent(caseNumber)}`).then(r => r.json());
+if (response.status === "success" && response.data) {
+const { patient_id, study_id } = response.data;
+if (patient_id) {
+const patientResponse = await fetch(`/api/get_patient_data?patient_id=${patient_id}`).then(r => r.json());
+if (patientResponse.status === "success" && patientResponse.data) {
+fillPatientFields(patientResponse.data);
+currentPatientId = patient_id;
+await loadPatientStudies(patient_id);
+const studyButtons = document.querySelectorAll('#studiesTableBody button[data-study-id]');
+studyButtons.forEach(button => {
+if (button.getAttribute('data-study-id') === String(study_id)) {
+button.click();
+}
+});
+} else {
+showNotification('Пациент не найден', 'error');
+resetForm();
+document.getElementById('studiesTableBody').innerHTML = '<tr><td colspan="9">Пациент не найден</td></tr>';
+}
+} else {
+showNotification('Исследование не связано с пациентом', 'error');
+}
+} else {
+showNotification('Исследование с таким номером случая не найдено', 'error');
+resetForm();
+document.getElementById('studiesTableBody').innerHTML = '<tr><td colspan="9">Исследование не найдено</td></tr>';
+}
+} catch (error) {
+showNotification('Ошибка при поиске: ' + error.message, 'error');
+console.error('Ошибка:', error);
+}
+}
+
+async function searchByStudyDate(studyDate) {
+try {
+const response = await fetch(`/api/search_study_by_date?study_date=${encodeURIComponent(studyDate)}`).then(r => r.json());
+if (response.status === "success" && response.data) {
+const { patient_id, study_id } = response.data;
+if (patient_id) {
+const patientResponse = await fetch(`/api/get_patient_data?patient_id=${patient_id}`).then(r => r.json());
+if (patientResponse.status === "success" && patientResponse.data) {
+fillPatientFields(patientResponse.data);
+currentPatientId = patient_id;
+await loadPatientStudies(patient_id);
+const studyButtons = document.querySelectorAll('#studiesTableBody button[data-study-id]');
+studyButtons.forEach(button => {
+if (button.getAttribute('data-study-id') === String(study_id)) {
+button.click();
+}
+});
+} else {
+showNotification('Пациент не найден', 'error');
+resetForm();
+document.getElementById('studiesTableBody').innerHTML = '<tr><td colspan="9">Пациент не найден</td></tr>';
+}
+} else {
+showNotification('Исследование не связано с пациентом', 'error');
+}
+} else {
+showNotification('Исследование с такой датой не найдено', 'error');
+resetForm();
+document.getElementById('studiesTableBody').innerHTML = '<tr><td colspan="9">Исследование не найдено</td></tr>';
+}
+} catch (error) {
+showNotification('Ошибка при поиске: ' + error.message, 'error');
+console.error('Ошибка:', error);
+}
+}
+
+async function searchByDirectionNumber(directionNumber) {
+try {
+console.log("Вызов search_study_by_direction_number с: " + directionNumber);
+const response = await fetch(`/api/search_study_by_direction_number?direction_number=${encodeURIComponent(directionNumber)}`).then(r => r.json());
+console.log("Ответ от сервера: ", response);
+if (response.status === "success" && response.data) {
+const { patient_id, study_id } = response.data;
+if (patient_id) {
+const patientResponse = await fetch(`/api/get_patient_data?patient_id=${patient_id}`).then(r => r.json());
+console.log("Данные пациента: ", patientResponse);
+if (patientResponse.status === "success" && patientResponse.data) {
+fillPatientFields(patientResponse.data);
+currentPatientId = patient_id;
+await loadPatientStudies(patient_id);
+if (study_id) {
+const studyButtons = document.querySelectorAll('#studiesTableBody button[data-study-id]');
+let studyFound = false;
+studyButtons.forEach(button => {
+if (button.getAttribute('data-study-id') === String(study_id)) {
+console.log("Выбор исследования с ID: " + study_id);
+button.click();
+studyFound = true;
+}
+});
+if (!studyFound) {
+console.log("Исследование с ID " + study_id + " не найдено в таблице");
+}
+} else {
+console.log("Исследований для пациента не найдено");
+}
+} else {
+showNotification('Пациент не найден', 'error');
+resetForm();
+document.getElementById('studiesTableBody').innerHTML = '<tr><td colspan="9">Пациент не найден</td></tr>';
+}
+} else {
+showNotification('Материал не связан с пациентом', 'error');
+}
+} else {
+showNotification('Материал с таким номером направления не найден', 'error');
+resetForm();
+document.getElementById('studiesTableBody').innerHTML = '<tr><td colspan="9">Материал не найден</td></tr>';
+}
+} catch (error) {
+showNotification('Ошибка при поиске: ' + error.message, 'error');
+console.error('Ошибка:', error);
+}
+}
+
+async function searchByAmbulatoryCard(cardNumber) {
+try {
+const response = await fetch(`/api/search_study_by_ambulatory_card?card_number=${encodeURIComponent(cardNumber)}`).then(r => r.json());
+if (response.status === "success" && response.data) {
+const { patient_id, study_id } = response.data;
+if (patient_id) {
+const patientResponse = await fetch(`/api/get_patient_data?patient_id=${patient_id}`).then(r => r.json());
+if (patientResponse.status === "success" && patientResponse.data) {
+fillPatientFields(patientResponse.data);
+currentPatientId = patient_id;
+await loadPatientStudies(patient_id);
+if (study_id) {
+const studyButtons = document.querySelectorAll('#studiesTableBody button[data-study-id]');
+studyButtons.forEach(button => {
+if (button.getAttribute('data-study-id') === String(study_id)) {
+button.click();
+}
+});
+}
+} else {
+showNotification('Пациент не найден', 'error');
+}
+} else {
+showNotification('Пациент не найден', 'error');
+}
+} 
+}catch (error) {
+showNotification('Ошибка поиска: ' + error.message, 'error');
+}
+}
+
+calculateAge();
+
+$('#raion').select2({
+placeholder: "Выберите район",
+allowClear: true,
+width: '275px'
+});
+
+fetch('/api/get_raion_data')
+.then(response => response.json())
+.then(function(response) {
+if (response.status === "success" && response.data && response.data.length > 0) {
+$('#raion').empty();
+$('#raion').append(new Option("", "", true, true));
+response.data.forEach(function(item) {
+$('#raion').append(new Option(item.name, item.id));
+});
+$('#raion').trigger('change.select2');
+} else {
+console.error('Ошибка загрузки районов или данные отсутствуют:', response);
+}
+})
+.catch(function(error) {
+console.error('Ошибка при вызове get_raion_data:', error);
+});
+
+async function createNewBethesdaTerm(term) {
+try {
+const response = await fetch('/api/create_bethesda_term', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+},
+body: JSON.stringify({ name: term })
+}).then(r => r.json());
+if (response.status === "success") {
+return response.data;
+} else {
+showNotification('Ошибка при создании нового термина: ' + response.message, 'error');
+return null;
+}
+} catch (error) {
+showNotification('Ошибка при создании нового термина: ' + error, 'error');
+return null;
+}
+}
+
+$('#bethesda_term_id').on('select2:select', async function(e) {
+const selectedOption = e.params.data;
+if (selectedOption.newOption) {
+const newTerm = await createNewBethesdaTerm(selectedOption.text);
+if (newTerm) {
+const $option = $(this).find('option:selected');
+$option.val(newTerm.id);
+$option.text(newTerm.name);
+$(this).trigger('change');
+const textarea = document.getElementById('conclusion_text');
+if (textarea) {
+textarea.value = newTerm.name;
+if (typeof window.autosizeConclusion === 'function') { window.autosizeConclusion(); }
+}
+}
+} else {
+const textarea = document.getElementById('conclusion_text');
+if (textarea) {
+textarea.value = selectedOption.text;
+if (typeof window.autosizeConclusion === 'function') { window.autosizeConclusion(); }
+}
+}
+});
+
+$('#gist_matik').on('select2:select', async function(e) {
+const selectedOption = e.params.data;
+if (selectedOption.newTag) {
+const response = await fetch('/api/add_gistolog_term', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+},
+body: JSON.stringify({ name: selectedOption.text })
+}).then(r => r.json());
+if (response.status === "success") {
+$(this).find('option:selected').remove();
+const newOption = new Option(response.name, response.id, true, true);
+$(this).append(newOption).trigger('change');
+}
+}
+});
+
+function initializeTooltips() {
+const tooltipInputs = [
+'patientLastName',
+'patientFirstName',
+'patientMiddleName',
+'snils',
+'address',
+'insurance',
+'ambulatory_card_number',
+'direction_number'
+];
+tooltipInputs.forEach(inputId => {
+const input = document.getElementById(inputId);
+const tooltip = document.getElementById(`tooltip-${inputId}`);
+if (input && tooltip) {
+input.addEventListener('mouseenter', function() {
+const value = this.value.trim();
+if (value) {
+tooltip.textContent = value;
+tooltip.classList.add('show');
+setTimeout(() => {
+adjustTooltipPosition(tooltip, this);
+}, 10);
+}
+});
+input.addEventListener('mouseleave', function() {
+tooltip.classList.remove('show');
+});
+input.addEventListener('focus', function() {
+const value = this.value.trim();
+if (value) {
+tooltip.textContent = value;
+tooltip.classList.add('show');
+}
+});
+input.addEventListener('blur', function() {
+setTimeout(() => {
+tooltip.classList.remove('show');
+}, 200);
+});
+}
+});
+}
+
+initializeTooltips();
+
+(function() {
+const snilsInput = document.getElementById('snils');
+if (snilsInput) {
+snilsInput.addEventListener('blur', function() {
+const normalized = normalizeSnils(this.value);
+if (normalized && normalized !== this.value) this.value = normalized;
+});
+}
+})();
+
+function adjustTooltipPosition(tooltip, input) {
+const tooltipRect = tooltip.getBoundingClientRect();
+const inputRect = input.getBoundingClientRect();
+const viewportWidth = window.innerWidth;
+tooltip.classList.remove('tooltip-left', 'tooltip-right', 'tooltip-bottom');
+if (tooltipRect.width > viewportWidth - 40) {
+tooltip.style.maxWidth = (viewportWidth - 40) + 'px';
+}
+if (tooltipRect.left < 20) {
+tooltip.classList.add('tooltip-right');
+}
+else if (tooltipRect.right > viewportWidth - 20) {
+tooltip.classList.add('tooltip-left');
+}
+else if (tooltipRect.top < 20) {
+tooltip.classList.add('tooltip-bottom');
+}
+}
+
+const peresmotrToggle = document.getElementById('peresmotr');
+const createCopyBtn = document.getElementById('createCopyBtn');
+function updateCreateCopyVisibility() {
+createCopyBtn.style.display = (peresmotrToggle.checked && !peresmotrToggle.disabled) ? '' : 'none';
+}
+peresmotrToggle.addEventListener('change', updateCreateCopyVisibility);
+updateCreateCopyVisibility();
+
+createCopyBtn.addEventListener('click', async function() {
+await savePatientData(true);
+});
+
+function reloadBethesdaTerms(preserveId) {
+const current = preserveId || $('#bethesda_term_id').val();
+fetch('/api/get_bethesda_terms')
+.then(r => r.json())
+.then(function(response) {
+if (response.status === "success") {
+$('#bethesda_term_id').empty();
+$('#bethesda_term_id').append(new Option("Выберите заключение", "", true, true));
+$.each(response.data, function(index, item) {
+$('#bethesda_term_id').append(new Option(item.name, item.id));
+});
+if (current) {
+$('#bethesda_term_id').val(current).trigger('change');
+}
+}
+});
+}
+});
+</script>
+</body>
+</html>

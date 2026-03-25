@@ -1,0 +1,208 @@
+#reportModal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+#reportModal .modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+#reportModal .report-form {
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+#reportModal .report-form h2 {
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 24px;
+}
+
+#reportModal .form-group {
+    margin-bottom: 15px;
+}
+
+#reportModal .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+#reportModal .form-group select,
+#reportModal .form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: #fff;
+}
+
+#reportModal .date-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+#reportModal .date-inputs > div {
+    flex: 1;
+}
+
+#reportModal .report-form button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+#reportModal .report-form button:hover {
+    background-color: #45a049;
+}
+
+#reportModal .report-results {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow-x: auto;
+}
+
+#reportModal .report-actions {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+#reportModal .report-actions button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+#reportModal .report-actions button:first-child {
+    background-color: #2196F3;
+    color: white;
+}
+
+#reportModal .report-actions button:last-child {
+    background-color: #FF9800;
+    color: white;
+}
+
+#reportModal .report-actions button:hover {
+    opacity: 0.9;
+}
+
+#reportModal #reportTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    table-layout: fixed;
+    min-width: 1200px;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+}
+
+#reportModal #reportTable th,
+#reportModal #reportTable td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #ddd;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#reportModal #reportTable th {
+    background-color: #f0f0f0;
+    color: #000;
+    font-weight: bold;
+    border: 1px solid #c0c0c0;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+#reportModal #reportTable td {
+    border: 1px solid #e0e0e0;
+    vertical-align: middle;
+}
+
+#reportModal #reportTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#reportModal #reportTable tr:hover {
+    background-color: #e6f3ff;
+}
+
+#reportModal #reportTable th:nth-child(1) { width: 15%; }
+#reportModal #reportTable th:nth-child(2) { width: 10%; }
+#reportModal #reportTable th:nth-child(3) { width: 10%; }
+#reportModal #reportTable th:nth-child(4) { width: 10%; }
+#reportModal #reportTable th:nth-child(5) { width: 10%; }
+#reportModal #reportTable th:nth-child(6) { width: 10%; }
+#reportModal #reportTable th:nth-child(7) { width: 15%; }
+#reportModal #reportTable th:nth-child(8) { width: 10%; }
+
+#reportModal .report-table-container {
+    max-height: 600px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+#reportModal .close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+#reportModal .close-button:hover {
+    color: #000;
+}
+
+@media print {
+    #reportModal .report-form,
+    #reportModal .report-actions {
+        display: none;
+    }
+    
+    #reportModal .report-results {
+        box-shadow: none;
+    }
+
+    #reportModal #reportTable {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    #reportModal #reportTable th,
+    #reportModal #reportTable td {
+        border: 1px solid #000;
+        padding: 5px;
+    }
+} 

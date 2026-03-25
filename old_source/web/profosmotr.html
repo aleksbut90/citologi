@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результаты анализов</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="js/auth.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<style>
+    :root {
+        /* Blue-purple palette from provided CSS */
+        --primary-blue: #3b82f6;
+        --primary-blue-dark: #2563eb;
+        --primary-purple: #8b5cf6;
+        --primary-purple-dark: #7c3aed;
+        --secondary-indigo: #6366f1;
+        --secondary-indigo-dark: #4f46e5;
+        --accent-cyan: #06b6d4;
+        --accent-cyan-dark: #0891b2;
+        
+        /* Non-white backgrounds */
+        --background-light: #f1f5ff;
+        --background-primary: #e0e7ff;
+        --background-secondary: #f3f4f6;
+        --background-card: #f8fafc;
+        --background-gradient: linear-gradient(135deg, #f1f5ff 0%, #e0e7ff 50%, #f3f4f6 100%);
+        --background-card-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5ff 100%);
+        
+        /* Text colors */
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        --text-muted: #64748b;
+        --text-white: #ffffff;
+        
+        /* Borders and shadows */
+        --border-light: #e2e8f0;
+        --border-medium: #cbd5e1;
+        --border-accent: #c7d2fe;
+        --shadow-soft: 0 4px 20px rgba(59, 130, 246, 0.15);
+        --shadow-medium: 0 8px 30px rgba(59, 130, 246, 0.2);
+        --shadow-strong: 0 20px 40px rgba(59, 130, 246, 0.3);
+        
+        /* Radius and transitions */
+        --border-radius: 16px;
+        --border-radius-small: 12px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        
+        /* Gradients */
+        --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        --primary-gradient-hover: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        --secondary-gradient: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+        --secondary-gradient-hover: linear-gradient(135deg, #4f46e5 0%, #0891b2 100%);
+        --success-gradient: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+        --success-gradient-hover: linear-gradient(135deg, #059669 0%, #0891b2 100%);
+        --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+        --accent-gradient-hover: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+        --warning-gradient: linear-gradient(135deg, #eab308 0%, #f59e0b 100%);
+        --warning-gradient-hover: linear-gradient(135deg, #ca8a04 0%, #d97706 100%);
+        --danger-gradient: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+        --danger-gradient-hover: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
+        
+        /* Special effects */
+        --glass-effect: rgba(248, 250, 252, 0.8);
+        --backdrop-blur: blur(10px);
+        --border-color: rgba(99, 102, 241, 0.2);
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--background-gradient);
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text-primary);
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 24px;
+        padding: 20px;
+        background: var(--background-card-gradient);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-medium);
+        border: 1px solid var(--border-color);
+        position: relative;
+    }
+
+    .back-button {
+        position: absolute;
+        left: 20px;
+        top: 20%;
+        transform: translateY(-50%);
+        padding: 8px 16px;
+        background: var(--primary-gradient);
+        color: var(--text-white);
+        border: none;
+        border-radius: var(--border-radius-small);
+        cursor: pointer;
+        font-weight: 500;
+        transition: var(--transition);
+        text-decoration: none;
+    }
+
+    .back-button:hover {
+        background: var(--primary-gradient-hover);
+        transform: translateY(-50%) scale(1.05);
+    }
+
+    h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 16px 0;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        display: inline-block;
+    }
+
+    .crb-select-container {
+        margin: 20px auto;
+        text-align: left;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .crb-label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 16px;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    #crb-select,
+    #lpu-select,
+    #study-type-select,
+    #doctor-select,
+    #lab-select {
+        width: 260px;
+        min-width: 260px;
+        max-width: 260px;
+    }
+
+    .select2-container--default .select2-selection--single,
+    .select2-container {
+        width: 260px !important;
+        min-width: 260px !important;
+        max-width: 260px !important;
+        border-radius: var(--border-radius-small) !important;
+        border: 1px solid var(--border-medium) !important;
+        padding: 4px !important;
+        background: var(--background-card) !important;
+    }
+
+    .select2-container--default .select2-selection--single {
+        height: 42px !important;
+        display: flex !important;
+        align-items: center !important;
+        color: var(--text-primary) !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: var(--text-primary) !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 42px !important;
+    }
+
+    .select2-dropdown {
+        background: var(--background-card) !important;
+        border-radius: var(--border-radius-small) !important;
+        box-shadow: var(--shadow-medium) !important;
+        border: 1px solid var(--border-medium) !important;
+    }
+
+    .select2-container--default .select2-results__option {
+        color: var(--text-primary) !important;
+    }
+
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background: var(--primary-blue) !important;
+        color: var(--text-white) !important;
+    }
+
+    .select2-search__field {
+        background: var(--background-light) !important;
+        color: var(--text-primary) !important;
+        border-color: var(--border-medium) !important;
+    }
+
+    /* Предотвращение дублирования Select2 элементов */
+    .select2-container + .select2-container {
+        display: none !important;
+    }
+
+    /* Скрытие оригинального select после инициализации Select2 */
+    .select2-hidden-accessible {
+        position: absolute !important;
+        left: -10000px !important;
+        width: 1px !important;
+        height: 1px !important;
+        overflow: hidden !important;
+    }
+
+    #crb-select:focus,
+    #doctor-select:focus,
+    #lab-select:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: var(--shadow-soft);
+    }
+
+    .status-cards {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 24px;
+    }
+
+    .status-card {
+        background: var(--background-card-gradient);
+        border-radius: var(--border-radius-small);
+        padding: 16px;
+        text-align: center;
+        /* width: 150px; */
+        box-shadow: var(--shadow-soft);
+        transition: var(--transition);
+        border: 1px solid var(--border-color);
+    }
+
+    .status-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    .status-card.checkbox-card {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .status-card input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--primary-blue);
+    }
+
+    .status-card label.checkbox-label {
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .status-card label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .status-card input[type="text"] {
+        width: 96px;
+        text-align: center;
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid var(--primary-blue);
+        transition: var(--transition);
+        padding: 4px 0;
+    }
+
+    .status-card input[type="text"]:focus {
+        outline: none;
+        border-color: var(--primary-blue-dark);
+        width: 110px;
+    }
+
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    @media (min-width: 1026px) {
+        .main-content {
+            flex-direction: row;
+        }
+    }
+
+    .table-container {
+        background: var(--background-card-gradient);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-medium);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .left-table-table-container {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    @media (min-width: 1024px) {
+        .left-table-container {
+            width: 20%;
+            margin-right: 95px;
+            margin-left: 60px;
+        }
+    }
+
+    .right-table-container {
+        width: 100%;
+        overflow: auto;
+    }
+
+    .right-table-container table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    .right-table-container th,
+    .right-table-container td {
+        width: auto;
+        text-align: left;
+        padding: 6px 8px;
+    }
+
+    #right-table-body {
+        width: 100%;
+    }
+
+    #right-table-body tr {
+        width: 100%;
+    }
+
+    /* Первый столбец (Зак-е цитолога) - компактный */
+    .right-table-container th:first-child,
+    #right-table-body td:first-child {
+        width: auto;
+        min-width: 70px;
+        max-width: 100px;
+    }
+    
+    /* Заголовок первого столбца по центру */
+    .right-table-container th:first-child {
+        text-align: center;
+    }
+    
+    /* Остальные столбцы (Врач, Лаборант) - минимальные размеры */
+    .right-table-container th:not(:first-child) {
+        text-align: center;
+    }
+    
+    .right-table-container th:not(:first-child),
+    #right-table-body td:not(:first-child) {
+        width: auto;
+        min-width: 30px;
+        max-width: 45px;
+        padding: 1px;
+    }
+
+    @media (min-width: 1024px) {
+        .right-table-container {
+            width: 58%;
+        }
+    }
+
+    .scrollable {
+        overflow-y: auto;
+        max-height: calc(100vh - 300px);
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-blue) var(--background-secondary);
+    }
+
+    .scrollable::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .scrollable::-webkit-scrollbar-track {
+        background: var(--background-light);
+        border-radius: var(--border-radius-small);
+    }
+
+    .scrollable::-webkit-scrollbar-thumb {
+        background: var(--primary-gradient);
+        border-radius: var(--border-radius-small);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        background: var(--primary-gradient);
+        color: var(--text-white);
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        padding: 12px 24px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    td {
+        padding: 14px 24px;
+        font-size: 0.875rem;
+        color: var(--text-primary);
+    }
+
+    tr:hover {
+        background-color: var(--border-color);
+    }
+
+    tbody tr {
+        border-bottom: 1px solid var(--border-light);
+        transition: var(--transition);
+    }
+
+    td input {
+        width: 30%;
+        padding: 4px 6px;
+        font-size: 0.8rem;
+        border: 1px solid var(--border-medium);
+        border-radius: var(--border-radius-small);
+        font-size: 0.875rem;
+        transition: var(--transition);
+        background: var(--background-card);
+        color: var(--text-primary);
+    }
+
+    td input:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: var(--shadow-soft);
+    }
+
+    footer {
+        margin-top: 24px;
+        text-align: center;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+
+    .notification {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius-small);
+        color: var(--text-white);
+        font-weight: 500;
+        z-index: 1000;
+        opacity: 0;
+        transition: var(--transition);
+        max-width: 320px;
+        text-align: center;
+        box-shadow: var(--shadow-strong);
+    }
+
+    .notification.success {
+        background: var(--success-gradient);
+    }
+
+    .notification.error {
+        background: var(--danger-gradient);
+    }
+
+    .notification.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .notification:not(.show) {
+        transform: translateY(-20px);
+    }
+
+    .cell-button {
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .cell-button:hover {
+        background: var(--border-color);
+        color: var(--primary-blue);
+        font-weight: bold;
+    }
+
+    .row-button {
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .row-button:hover {
+        background: var(--border-color);
+    }
+
+    th, td {
+        text-align: center;
+    }
+
+    .keyboard-focus {
+        position: fixed;
+        border: 2px solid var(--primary-blue);
+        border-radius: var(--border-radius-small);
+        pointer-events: none;
+        z-index: 9999;
+        transition: var(--transition);
+        box-shadow: var(--shadow-soft);
+        background-color: var(--border-color);
+    }
+
+    .keyboard-focus.active {
+        background-color: rgba(99, 102, 241, 0.1);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+    }
+
+    .select2-container--keyboard-focus .select2-selection {
+        border-color: var(--primary-blue) !important;
+        box-shadow: var(--shadow-soft) !important;
+    }
+
+    input:focus, select:focus {
+        outline: none;
+        border-color: var(--primary-blue) !important;
+        box-shadow: var(--shadow-soft) !important;
+    }
+
+    .save-button-container {
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .btn {
+        padding: 22px;
+        font-size: 14px;
+        border: none;
+        border-radius: var(--border-radius-small);
+        cursor: pointer;
+        transition: var(--transition);
+        background: var(--primary-gradient);
+        color: var(--text-white);
+    }
+
+    .btn-primary {
+        background: var(--primary-gradient);
+        color: var(--text-white);
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-gradient-hover);
+    }
+
+    /* Modal styles */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-overlay.show {
+        display: flex;
+    }
+    .modal-content {
+        background: var(--background-card-gradient);
+        border-radius: var(--border-radius);
+        padding: 24px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: var(--shadow-strong);
+        border: 1px solid var(--border-color);
+    }
+    .modal-content h3 {
+        margin: 0 0 16px 0;
+        color: var(--text-primary);
+        font-size: 1.125rem;
+    }
+    .modal-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+    .modal-buttons .btn {
+        padding: 10px 20px;
+    }
+    .btn-danger {
+        background: var(--danger-gradient);
+        color: var(--text-white);
+    }
+    .btn-danger:hover {
+        background: var(--danger-gradient-hover);
+    }
+    .btn-secondary {
+        background: var(--background-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-medium);
+    }
+    .btn-secondary:hover {
+        background: var(--border-light);
+    }
+    .delete-icon {
+        cursor: pointer;
+        padding: 4px 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #ef4444;
+        transition: var(--transition);
+        border-radius: var(--border-radius-small);
+    }
+    .delete-icon:hover {
+        background: rgba(239, 68, 68, 0.15);
+        color: #dc2626;
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="home.html" class="back-button">Назад</a>
+            <h1>Профосмотр</h1>
+            <div class="crb-select-container">
+                <label for="crb-select" class="crb-select" style="margin-left: 16px;">Выбрать ЦРБ:</label>
+                <select id="crb-select" class="form-input" style="width: 160px; margin-right: 8px;"></select>
+                <label for="lpu-select" class="crb-label" style="margin-left: 16px;">ЦРБ (старый список):</label>
+                <select id="lpu-select" class="form-input" style="width: 160px; margin-right: 8px;"></select>
+                <label for="study-type-select" class="crb-label" style="margin-left: 16px;">Тип исследования:</label>
+                <select id="study-type-select" class="form-input" style="width: 160px; margin-right: 8px;"></select>
+            </div>
+            <div class="crb-select-container" style="margin-top: 10px;">
+                <label for="doctor-select" class="crb-label" style="margin-left: 16px;">Врач:</label>
+                <select id="doctor-select" class="form-input" style="width: 160px; margin-right: 8px;"></select>
+                <label for="lab-select" class="crb-label" style="margin-left: 16px;">Лаборант:</label>
+                <select id="lab-select" class="form-input" style="width: 160px;"></select>
+            </div>
+            <div class="status-cards">
+                <div class="status-card">
+                    <label>Стекло</label>
+                    <input type="text" id="steclo-input" value="">
+                </div>
+                <div class="status-card">
+                    <label>Передано врачу патологий</label>
+                    <input type="text" id="pathologies-input" value="">
+                </div>
+                <div class="status-card checkbox-card">
+                    <input type="checkbox" id="liquid-checkbox">
+                    <label for="liquid-checkbox" class="checkbox-label">Жидкостная</label>
+                    <input type="checkbox" id="traditional-checkbox">
+                    <label for="traditional-checkbox" class="checkbox-label">Традиционная</label>
+                </div>
+                <div class="save-button-container" style="margin-top: 16px;">
+                    <button type="button" id="save-button" class="btn btn-primary">Сохранить</button>
+                </div>
+            </div>
+        </header>
+    </div>
+        <main class="main-content">
+            <div class="table-container left-table-container scrollable">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Номер</th>
+                            <th>Дата</th>
+                            <th style="width: 40px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="left-table-body">
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-container right-table-container scrollable">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Зак-е цитолога</th>
+                            <th>Врач</th>
+                            <th>Лаборант</th>
+                        </tr>
+                    </thead>
+                    <tbody id="right-table-body">
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+        <footer>
+            <p>+ - НОВЫЙ ПРОФОСМОТР; F10 - СОХРАНЕНИЕ</p>
+        </footer>
+        <div id="notification" class="notification"></div>
+
+        <!-- Modal для подтверждения удаления -->
+        <div id="delete-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h3 id="delete-modal-text">Вы действительно хотите удалить профосмотр номер <span id="delete-modal-number"></span>?</h3>
+                <div class="modal-buttons">
+                    <button type="button" id="delete-modal-no" class="btn btn-secondary">Нет</button>
+                    <button type="button" id="delete-modal-yes" class="btn btn-danger">Да</button>
+                </div>
+            </div>
+        </div>
+
+    <script>
+        let currentProfosmotrId = null;
+
+        // Sample data
+        let leftTableData = [];
+        const rightTableData = [
+            { cytologist: 'NILM', doctorLab: '', lab: ''},
+            { cytologist: 'ASCUS', doctorLab: '', lab: ''},
+            { cytologist: 'ASC-H', doctorLab: '', lab: ''},
+            { cytologist: 'CIN I', doctorLab: '', lab: ''},
+            { cytologist: 'CIN II', doctorLab: '', lab: ''},
+            { cytologist: 'CIN III', doctorLab: '', lab: ''},
+            { cytologist: 'Подозр. на рак', doctorLab: '', lab: ''},
+            { cytologist: 'Cr(ccs)', doctorLab: '', lab: ''},
+            { cytologist: 'Ат. кл. хл. эп. ан (AGC)', doctorLab: '', lab: ''},
+            { cytologist: 'AGC(fn.)', doctorLab: '', lab: ''},
+            { cytologist: 'AgCa', doctorLab: '', lab: ''},
+            { cytologist: 'Прочие', doctorLab: '', lab: ''},
+            { cytologist: 'воспаление+HPV', doctorLab: '', lab: ''},
+            { cytologist: 'LSIL+HPV', doctorLab: '', lab: ''},
+            { cytologist: 'Итого', doctorLab: '0', lab: '0'},
+        ];
+
+        // Function to load data from database
+        function loadProfosmotrData() {
+            fetch('/api/get_profosmotr_data')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(function(response) {
+                    if (response.status === "success") {
+                        leftTableData = response.data;
+                        populateLeftTable();
+                        console.log('Ответ get_profosmotr_data:', response);
+                        console.log('lpu_prof:', response.raw.lpu_prof, 'lpu_name:', response.lpu_name);
+                        $('#crb-select option').each(function() {
+                            console.log('option value:', $(this).val());
+                        });
+                    } else {
+                        console.error('Ошибка при загрузке данных:', response.message);
+                    }
+                }).catch(function(error) {
+                    console.error('Ошибка при загрузке данных:', error);
+                });
+        }
+
+        // Populate left table
+        function populateLeftTable() {
+            const tbody = document.getElementById('left-table-body');
+            tbody.innerHTML = '';
+            const deleteIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+            leftTableData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.classList.add('row-button');
+                tr.addEventListener('click', (e) => {
+                    if (!e.target.closest('.delete-icon')) {
+                        loadRowData(row.id);
+                    }
+                });
+
+                const tdId = document.createElement('td');
+                tdId.textContent = row.id;
+
+                const tdDate = document.createElement('td');
+                tdDate.textContent = row.date;
+
+                const tdDelete = document.createElement('td');
+                const deleteBtn = document.createElement('span');
+                deleteBtn.className = 'delete-icon';
+                deleteBtn.innerHTML = deleteIconSvg;
+                deleteBtn.title = 'Удалить';
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showDeleteModal(row.id);
+                });
+                tdDelete.appendChild(deleteBtn);
+
+                tr.appendChild(tdId);
+                tr.appendChild(tdDate);
+                tr.appendChild(tdDelete);
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Modal подтверждения удаления
+        let deleteModalProfosmotrId = null;
+        function showDeleteModal(profosmotrId) {
+            deleteModalProfosmotrId = profosmotrId;
+            document.getElementById('delete-modal-number').textContent = profosmotrId;
+            document.getElementById('delete-modal').classList.add('show');
+        }
+        function hideDeleteModal() {
+            deleteModalProfosmotrId = null;
+            document.getElementById('delete-modal').classList.remove('show');
+        }
+        function confirmDeleteProfosmotr() {
+            if (!deleteModalProfosmotrId) return;
+            const idToDelete = deleteModalProfosmotrId;
+            hideDeleteModal();
+            fetch('/api/delete_profosmotr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'profosmotr_id=' + encodeURIComponent(idToDelete)
+            })
+            .then(response => response.json())
+            .then(function(response) {
+                if (response.status === 'success') {
+                    showNotification('Профосмотр №' + idToDelete + ' удалён', 'success');
+                    if (currentProfosmotrId == idToDelete) {
+                        currentProfosmotrId = null;
+                        $('#crb-select').val('').trigger('change');
+                        $('#lpu-select').val('').trigger('change');
+                        $('#study-type-select').val('').trigger('change');
+                        $('#doctor-select').val('').trigger('change');
+                        $('#lab-select').val('').trigger('change');
+                        document.getElementById('steclo-input').value = '';
+                        document.getElementById('pathologies-input').value = '';
+                        document.getElementById('liquid-checkbox').checked = false;
+                        document.getElementById('traditional-checkbox').checked = false;
+                        populateRightTable();
+                    }
+                    loadProfosmotrData();
+                } else {
+                    showNotification('Ошибка при удалении: ' + (response.message || 'неизвестная ошибка'), 'error');
+                }
+            })
+            .catch(function(err) {
+                showNotification('Ошибка при удалении', 'error');
+                console.error(err);
+            });
+        }
+        document.getElementById('delete-modal-no').addEventListener('click', hideDeleteModal);
+        document.getElementById('delete-modal-yes').addEventListener('click', confirmDeleteProfosmotr);
+        document.getElementById('delete-modal').addEventListener('click', function(e) {
+            if (e.target === this) hideDeleteModal();
+        });
+
+        // Function to load data for a specific row
+        function loadRowData(rowId) {
+            currentProfosmotrId = rowId;
+            
+            // Сбрасываем все выпадающие списки перед загрузкой новых данных
+            $('#crb-select').val('').trigger('change');
+            $('#lpu-select').val('').trigger('change');
+            $('#study-type-select').val('').trigger('change');
+            $('#doctor-select').val('').trigger('change');
+            $('#lab-select').val('').trigger('change');
+            
+            // Сбрасываем текстовые поля
+            document.getElementById('steclo-input').value = '';
+            document.getElementById('pathologies-input').value = '';
+            document.getElementById('liquid-checkbox').checked = false;
+            document.getElementById('traditional-checkbox').checked = false;
+            
+            fetch(`/api/get_profosmotr_row_data?row_id=${rowId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(function(response) {
+                if (response.status === "success" && response.raw) {
+                    // 1. Заполняем верхние поля
+                    document.getElementById('steclo-input').value = response.raw.steclo_prof || '';
+                    document.getElementById('pathologies-input').value = response.raw.pathologies_prof || '';
+                    // Устанавливаем состояние чекбоксов в зависимости от значений
+                    const liquidCheckbox = document.getElementById('liquid-checkbox');
+                    const traditionalCheckbox = document.getElementById('traditional-checkbox');
+                    liquidCheckbox.checked = response.raw.liquid_prof === true || response.raw.liquid_prof === 'true';
+                    traditionalCheckbox.checked = response.raw.traditional_prof === true || response.raw.traditional_prof === 'true';
+
+                    // 2. Заполняем правую таблицу
+                    // соответствие: Врач1 = *_tabl_doctot, Лаборант1 = *_tabl_lab,
+                    const cytologistTable = [
+                        ['NILM', 'nilm_tabl_doctot', 'nilm_tabl_lab'],
+                        ['ASCUS', 'ascus_tabl_doctot', null],
+                        ['ASC-H', 'asc_h_tabl_doctot', null],
+                        ['CIN I', 'cin_i_tabl_doctot', null],
+                        ['CIN II', 'cin_ii_tabl_doctot', null],
+                        ['CIN III', 'cin_iii_tabl_doctot', null],
+                        ['Подозр. на рак', 'suspicion_tabl_doctot', null],
+                        ['Cr(ccs)', 'cr_tabl_doctot', null],
+                        ['Ат. кл. хл. эп. ан (AGC)', 'sgc_tabl_doctot', null],
+                        ['AGC(fn.)', 'cuspicion_tumor_tabl_doctot', null],
+                        ['AgCa', 'adenocarcinoma_tabl_doctot', null],
+                        ['Прочие', 'others_tabl_doctot', null],
+                        ['воспаление+HPV', 'hpv', null],
+                        ['LSIL+HPV', 'lsil_hpv', null]
+                    ];
+                    rightTableData.length = 0;
+                    cytologistTable.forEach(([cyt, doct, lab]) => {
+                        rightTableData.push({
+                            cytologist: cyt,
+                            doctorLab: response.raw[doct] || '',
+                            lab: lab ? (response.raw[lab] || '') : '',
+                            conclusion: ''
+                        });
+                    });
+                    // === Добавляем строку "Итого" ===
+                    const totals = { doctorLab: 0, lab: 0 };
+                    rightTableData.forEach(row => {
+                        totals.doctorLab += parseInt(row.doctorLab) || 0;
+                        totals.lab += parseInt(row.lab) || 0;
+                    });
+                    rightTableData.push({
+                        cytologist: 'Итого',
+                        doctorLab: totals.doctorLab.toString(),
+                        lab: totals.lab.toString(),
+                        conclusion: ''
+                    });
+                    populateRightTable();
+                    showNotification('Данные загружены', 'success');
+
+                    // --- ЦРБ ---
+                    if (response.raw.lpu_prof) {
+                        if (response.lpu_source === 'lpu') {
+                            // Если значение из таблицы lpu, устанавливаем в lpu-select
+                            if ($('#lpu-select option[value="' + response.raw.lpu_prof + '"]').length) {
+                                $('#lpu-select').val(response.raw.lpu_prof).trigger('change');
+                            } else if (response.lpu_name) {
+                                // Если нет — добавить и выбрать
+                                $('#lpu-select').append(
+                                    $('<option>', { value: response.raw.lpu_prof, text: response.lpu_name })
+                                );
+                                $('#lpu-select').val(response.raw.lpu_prof).trigger('change');
+                            }
+                        } else {
+                            // Если значение из таблицы organ, устанавливаем в crb-select
+                            if ($('#crb-select option[value="' + response.raw.lpu_prof + '"]').length) {
+                                $('#crb-select').val(response.raw.lpu_prof).trigger('change');
+                            } else if (response.lpu_name) {
+                                // Если нет — добавить и выбрать
+                                $('#crb-select').append(
+                                    $('<option>', { value: response.raw.lpu_prof, text: response.lpu_name })
+                                );
+                                $('#crb-select').val(response.raw.lpu_prof).trigger('change');
+                            }
+                        }
+                    }
+
+                    // --- Врач ---
+                    if (response.raw.doctor_prof) {
+                        $('#doctor-select').val(response.raw.doctor_prof).trigger('change');
+                    }
+                    // --- Лаборант ---
+                    if (response.raw.laborant_prof) {
+                        $('#lab-select').val(response.raw.laborant_prof).trigger('change');
+                    }
+
+                    // --- Тип исследования ---
+                    if (response.raw.profosmotr_prof) {
+                        $('#study-type-select').val(response.raw.profosmotr_prof).trigger('change');
+                    }
+                } else {
+                    const errorMsg = response.message || 'Ошибка при загрузке данных';
+                    showNotification('Ошибка: ' + errorMsg, 'error');
+                    console.error('Ошибка при загрузке данных:', response);
+                }
+            }).catch(function(error) {
+                showNotification('Ошибка при загрузке данных: ' + error.message, 'error');
+                console.error('Ошибка при загрузке данных:', error);
+            });
+        }
+
+        // Calculate totals
+        function calculateTotals(data) {
+            const totals = {
+                doctorLab: 0,
+                lab: 0,
+            };
+
+            data.forEach(row => {
+                if (row.cytologist !== 'Итого') {
+                    totals.doctorLab += parseInt(row.doctorLab) || 0;
+                    totals.lab += parseInt(row.lab) || 0;
+                }
+            });
+
+            return totals;
+        }
+
+        // Update table with totals
+        function updateTableWithTotals(data) {
+            const totals = calculateTotals(data);
+            return data.map(row => {
+                if (row.cytologist === 'Итого') {
+                    return {
+                        ...row,
+                        doctorLab: totals.doctorLab.toString(),
+                        lab: totals.lab.toString(),
+                    };
+                }
+                return row;
+            });
+        }
+
+        // Function to validate totals
+        function validateTotals() {
+            const stecloValue = parseInt(document.getElementById('steclo-input').value) || 0;
+            
+            // Get totals from the last row (Итого)
+            const totalsRow = document.querySelector('#right-table-body tr:last-child');
+            const doctorTotal = parseInt(totalsRow?.querySelector('td:nth-child(2)')?.textContent) || 0;
+            const labTotal = parseInt(totalsRow?.querySelector('td:nth-child(3)')?.textContent) || 0;
+            
+            const totalSum = doctorTotal + labTotal;
+            const isValid = stecloValue === totalSum;
+            
+            // Update totals row color
+            if (totalsRow) {
+                totalsRow.style.background = isValid ? 'linear-gradient(to right, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1))' : 'linear-gradient(to right, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1))';
+            }
+            
+            // Show notification if totals don't match
+            if (!isValid) {
+                showNotification('Итог не сходится! Стекло: ' + stecloValue + ', Сумма таблиц: ' + totalSum, 'error');
+            } else {
+                showNotification('Итог сходится', 'success');
+            }
+            
+            return isValid;
+        }
+
+        // Populate right table
+        function populateRightTable() {
+            const tbody = document.getElementById('right-table-body');
+            tbody.innerHTML = '';
+            const updatedData = updateTableWithTotals(rightTableData);
+            updatedData.forEach((row, rowIndex) => {
+                const tr = document.createElement('tr');
+                const isTotalRow = row.cytologist === 'Итого';
+                const isNILMRow = row.cytologist === 'NILM';
+                // Для столбца "Лаборант" input только для первой строки (NILM)
+                const labCell = isTotalRow ? row.lab : (isNILMRow ? `<input type="text" value="${row.lab}" data-row="${rowIndex}" data-field="lab">` : '');
+                tr.innerHTML = `
+                    <td>${row.cytologist}</td>
+                    <td>${isTotalRow ? row.doctorLab : `<input type="text" value="${row.doctorLab}" data-row="${rowIndex}" data-field="doctorLab">`}</td>
+                    <td>${labCell}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Validate totals and update colors after populating the table
+            validateTotals();
+
+            // Add event listeners to inputs
+            tbody.querySelectorAll('input').forEach(input => {
+                input.addEventListener('focus', function(e) {
+                    const length = this.value.length;
+                    this.setSelectionRange(length, length);
+                });
+
+                input.addEventListener('input', (e) => {
+                    const rowIndex = parseInt(e.target.dataset.row);
+                    const field = e.target.dataset.field;
+                    rightTableData[rowIndex][field] = e.target.value;
+                    const cursorPosition = e.target.value.length;
+                    populateRightTable();
+                    
+                    setTimeout(() => {
+                        const newInput = tbody.querySelector(`input[data-row="${rowIndex}"][data-field="${field}"]`);
+                        if (newInput) {
+                            newInput.focus();
+                            newInput.setSelectionRange(cursorPosition, cursorPosition);
+                            currentFocusElement = newInput;
+                            updateKeyboardFocus(newInput);
+                        }
+                    }, 0);
+                });
+            });
+        }
+
+        // Handle status card inputs
+        document.querySelectorAll('.status-card input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                validateTotals();
+            });
+        });
+
+        // Handle CRB selection - очищаем другой список при выборе
+        document.getElementById('crb-select').addEventListener('change', (e) => {
+            const selectedLpuId = e.target.value;
+            // Если выбран основной список, очищаем старый список
+            if (selectedLpuId) {
+                $('#lpu-select').val('').trigger('change');
+            }
+            if (selectedLpuId) {
+                const today = new Date().toISOString().slice(0, 10);
+                const formData = new FormData();
+                formData.append('lpu_id', selectedLpuId);
+                formData.append('lpu_source', 'organ');  // Источник - таблица organ
+                formData.append('date', today);
+                formData.append('profosmotr_id', currentProfosmotrId || '');
+
+                fetch('/api/save_profosmotr_lpu', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(function(response) {
+                    if (response.status === "success") {
+                        console.log('Организация сохранена успешно');
+                        loadProfosmotrData();
+                    } else {
+                        console.error('Ошибка при сохранении:', response.message);
+                    }
+                }).catch(function(error) {
+                    console.error('Ошибка при сохранении:', error);
+                });
+                populateRightTable();
+            }
+        });
+
+        // Handle LPU selection (old list) - очищаем основной список при выборе
+        document.getElementById('lpu-select').addEventListener('change', (e) => {
+            const selectedLpuId = e.target.value;
+            // Если выбран старый список, очищаем основной список
+            if (selectedLpuId) {
+                $('#crb-select').val('').trigger('change');
+            }
+            if (selectedLpuId) {
+                const today = new Date().toISOString().slice(0, 10);
+                const formData = new FormData();
+                formData.append('lpu_id', selectedLpuId);
+                formData.append('lpu_source', 'lpu');  // Источник - таблица lpu
+                formData.append('date', today);
+                formData.append('profosmotr_id', currentProfosmotrId || '');
+
+                fetch('/api/save_profosmotr_lpu', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(function(response) {
+                    if (response.status === "success") {
+                        console.log('Организация сохранена успешно');
+                        loadProfosmotrData();
+                    } else {
+                        console.error('Ошибка при сохранении:', response.message);
+                    }
+                }).catch(function(error) {
+                    console.error('Ошибка при сохранении:', error);
+                });
+                populateRightTable();
+            }
+        });
+
+        // Handle study type selection
+        document.getElementById('study-type-select').addEventListener('change', (e) => {
+            const selectedStudyTypeId = e.target.value;
+            if (selectedStudyTypeId) {
+                const today = new Date().toISOString().slice(0, 10);
+                const formData = new FormData();
+                formData.append('profosmotr_prof', selectedStudyTypeId);
+                formData.append('date', today);
+                formData.append('profosmotr_id', currentProfosmotrId || '');
+
+                fetch('/api/save_profosmotr_lpu', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(function(response) {
+                    if (response.status === "success") {
+                        console.log('Тип исследования сохранен успешно');
+                        loadProfosmotrData();
+                    } else {
+                        console.error('Ошибка при сохранении:', response.message);
+                    }
+                }).catch(function(error) {
+                    console.error('Ошибка при сохранении:', error);
+                });
+            }
+        });
+
+        // Add keyboard navigation system
+        let keyboardFocus = null;
+        let currentFocusElement = null;
+
+        function createKeyboardFocus() {
+            keyboardFocus = document.createElement('div');
+            keyboardFocus.className = 'keyboard-focus';
+            document.body.appendChild(keyboardFocus);
+        }
+
+        function getNextFocusableElement(currentElement, direction) {
+            // Проверяем, находимся ли мы в таблице
+            const isInTable = currentElement.closest('#right-table-body');
+            
+            if (isInTable) {
+                // Если мы в таблице, получаем все input элементы в текущей колонке
+                const currentColumn = currentElement.closest('td').cellIndex;
+                const allTableInputs = Array.from(document.querySelectorAll('#right-table-body input'));
+                const columnInputs = allTableInputs.filter(input => {
+                    return input.closest('td').cellIndex === currentColumn;
+                });
+                
+                const currentIndex = columnInputs.indexOf(currentElement);
+                let nextIndex;
+                
+                if (direction === 'down') {
+                    nextIndex = currentIndex + 1;
+                    if (nextIndex >= columnInputs.length) {
+                        // Если достигли конца колонки, переходим к следующей колонке
+                        const nextColumn = currentColumn + 1;
+                        if (nextColumn < 6) { // 6 - количество колонок в таблице
+                            const nextColumnInputs = allTableInputs.filter(input => {
+                                return input.closest('td').cellIndex === nextColumn;
+                            });
+                            return nextColumnInputs[0];
+                        }
+                    }
+                    return columnInputs[nextIndex];
+                } else if (direction === 'up') {
+                    nextIndex = currentIndex - 1;
+                    if (nextIndex < 0) {
+                        // Если достигли начала колонки, переходим к предыдущей колонке
+                        const prevColumn = currentColumn - 1;
+                        if (prevColumn >= 0) {
+                            const prevColumnInputs = allTableInputs.filter(input => {
+                                return input.closest('td').cellIndex === prevColumn;
+                            });
+                            return prevColumnInputs[prevColumnInputs.length - 1];
+                        }
+                    }
+                    return columnInputs[nextIndex];
+                }
+            }
+
+            // Если мы не в таблице или направление влево/вправо, используем стандартную логику
+            const allElements = Array.from(document.querySelectorAll(
+                '#crb-select + .select2-container, #lpu-select + .select2-container, #study-type-select + .select2-container, #doctor-select + .select2-container, #lab-select + .select2-container, #steclo-input, #pathologies-input, #liquid-checkbox, #traditional-checkbox, #right-table-body input'
+            )).filter(el => {
+                const style = window.getComputedStyle(el);
+                const hasSize = el.getClientRects().length > 0 && el.offsetWidth > 0 && el.offsetHeight > 0;
+                return style.display !== 'none' && style.visibility !== 'hidden' && hasSize && !el.classList.contains('select2-hidden-accessible');
+            });
+
+            let currentIndex = allElements.indexOf(currentElement);
+            if (currentIndex === -1) {
+                return allElements[0];
+            }
+
+            let nextIndex;
+            switch(direction) {
+                case 'right':
+                    nextIndex = currentIndex + 1;
+                    if (nextIndex >= allElements.length) nextIndex = 0;
+                    return allElements[nextIndex];
+                case 'left':
+                    nextIndex = currentIndex - 1;
+                    if (nextIndex < 0) nextIndex = allElements.length - 1;
+                    return allElements[nextIndex];
+                case 'down':
+                    const currentRect = currentElement.getBoundingClientRect();
+                    const currentCenterX = currentRect.left + currentRect.width / 2;
+                    
+                    for (let i = currentIndex + 1; i < allElements.length; i++) {
+                        const rect = allElements[i].getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
+                        if (Math.abs(centerX - currentCenterX) < 20 && rect.top > currentRect.bottom) {
+                            return allElements[i];
+                        }
+                    }
+                    return null;
+                case 'up':
+                    const currentRectUp = currentElement.getBoundingClientRect();
+                    const currentCenterXUp = currentRectUp.left + currentRectUp.width / 2;
+                    
+                    for (let i = currentIndex - 1; i >= 0; i--) {
+                        const rect = allElements[i].getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
+                        if (Math.abs(centerX - currentCenterXUp) < 20 && rect.bottom < currentRectUp.top) {
+                            return allElements[i];
+                        }
+                    }
+                    return null;
+            }
+            return null;
+        }
+
+        function updateKeyboardFocus(element) {
+            if (!keyboardFocus || !element) return;
+
+            let rect = element.getBoundingClientRect();
+            const outOfView = rect.top < 0 || rect.bottom > window.innerHeight || rect.left < 0 || rect.right > window.innerWidth;
+            if (outOfView) {
+                element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                rect = element.getBoundingClientRect();
+            }
+
+            // Обновляем позицию и размеры выделения
+            keyboardFocus.style.left = rect.left + 'px';
+            keyboardFocus.style.top = rect.top + 'px';
+            keyboardFocus.style.width = rect.width + 'px';
+            keyboardFocus.style.height = rect.height + 'px';
+            
+            // Обновляем текущий элемент
+            if (currentFocusElement) {
+                currentFocusElement.classList.remove('active');
+            }
+            currentFocusElement = element;
+            currentFocusElement.classList.add('active');
+        }
+
+        // Обработчик клавиш
+        document.addEventListener('keydown', function(e) {
+            if (!keyboardFocus) {
+                createKeyboardFocus();
+            }
+
+            // Если нет текущего элемента, выбираем первый
+            if (!currentFocusElement) {
+                const firstElement = document.querySelector('#crb-select + .select2-container, #lpu-select + .select2-container, .select2-container');
+                if (firstElement) {
+                    currentFocusElement = firstElement;
+                    updateKeyboardFocus(firstElement);
+                }
+                return;
+            }
+
+            // Проверяем, открыт ли Select2 dropdown
+            const openSelect2 = document.querySelector('.select2-container--open');
+            if (openSelect2) {
+                // Если открыт Select2 и нажаты стрелки вверх/вниз, позволяем Select2 обработать их
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                    return; // Пропускаем обработку, чтобы Select2 мог обработать клавиши
+                }
+                
+                // Если нажат Enter, закрываем dropdown и обновляем выделение
+                if (e.key === 'Enter') {
+                    const selectId = openSelect2.previousElementSibling?.id;
+                    if (selectId) {
+                        setTimeout(() => {
+                            $(`#${selectId}`).select2('close');
+                            updateKeyboardFocus(openSelect2);
+                        }, 0);
+                    }
+                    return;
+                }
+            }
+
+            // Обработка функциональных клавиш
+            if (e.key === 'F5') {
+                e.preventDefault();
+                showNotification('Открыть справочник', 'success');
+                return;
+            } else if (e.key === 'F10') {
+                e.preventDefault();
+                
+                if (!validateTotals()) {
+                    showNotification('Невозможно сохранить: итог не сходится', 'error');
+                    return;
+                }
+
+                            // Собираем значения из формы
+            const selectedCRB = document.getElementById('crb-select').value;
+            const selectedLPU = document.getElementById('lpu-select').value;
+            const selectedStudyType = document.getElementById('study-type-select').value;
+            const selectedLab = document.getElementById('lab-select').value;
+            const steclo = document.getElementById('steclo-input').value;
+            const pathologies = document.getElementById('pathologies-input').value;
+            const liquid = document.getElementById('liquid-checkbox').checked;
+            const traditional = document.getElementById('traditional-checkbox').checked;
+
+            // Проверяем, что выбран хотя бы один из двух списков ЦРБ
+            const finalCRB = selectedCRB || selectedLPU;
+            if (!finalCRB) {
+                showNotification('Выберите ЦРБ из одного из списков', 'error');
+                return;
+            }
+
+                // Собираем значения из правой таблицы
+                const getValue = (cytologist, field) => {
+                    const row = rightTableData.find(r => r.cytologist === cytologist);
+                    return row ? row[field] : '';
+                };
+
+                            // Вызов fetch API для сохранения
+            const formData = new FormData();
+            formData.append('lpu_id', finalCRB);
+            // Указываем, из какого списка пришло значение
+            formData.append('lpu_source', selectedLPU ? 'lpu' : 'organ');
+            // Указываем, из какого списка пришло значение
+            formData.append('lpu_source', selectedLPU ? 'lpu' : 'organ');
+            formData.append('date', new Date().toISOString().slice(0, 10));
+            formData.append('doctor_prof', document.getElementById('doctor-select').value);
+            formData.append('laborant_prof', document.getElementById('lab-select').value);
+            formData.append('profosmotr_prof', selectedStudyType);
+            formData.append('steclo_prof', steclo);
+            formData.append('pathologies_prof', pathologies);
+            formData.append('liquid_prof', liquid);
+            formData.append('traditional_prof', traditional);
+                formData.append('nilm_tabl_doctot', getValue('NILM', 'doctorLab'));
+                formData.append('ascus_tabl_doctot', getValue('ASCUS', 'doctorLab'));
+                formData.append('asc_h_tabl_doctot', getValue('ASC-H', 'doctorLab'));
+                formData.append('cin_i_tabl_doctot', getValue('CIN I', 'doctorLab'));
+                formData.append('cin_ii_tabl_doctot', getValue('CIN II', 'doctorLab'));
+                formData.append('cin_iii_tabl_doctot', getValue('CIN III', 'doctorLab'));
+                formData.append('suspicion_tabl_doctot', getValue('Подозр. на рак', 'doctorLab'));
+                formData.append('cr_tabl_doctot', getValue('Cr(ccs)', 'doctorLab'));
+                formData.append('sgc_tabl_doctot', getValue('Ат. кл. хл. эп. ан (AGC)', 'doctorLab'));
+                formData.append('cuspicion_tumor_tabl_doctot', getValue('AGC(fn.)', 'doctorLab'));
+                formData.append('adenocarcinoma_tabl_doctot', getValue('AgCa', 'doctorLab'));
+                formData.append('others_tabl_doctot', getValue('Прочие', 'doctorLab'));
+                formData.append('hpv', getValue('воспаление+HPV', 'doctorLab'));
+                formData.append('lsil_hpv', getValue('LSIL+HPV', 'doctorLab'));
+                formData.append('nilm_tabl_lab', getValue('NILM', 'lab'));
+                formData.append('profosmotr_id', currentProfosmotrId || '');
+
+                fetch('/api/save_profosmotr_lpu', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(function(response) {
+                    if (response.status === "success") {
+                        showNotification('Данные успешно сохранены', 'success');
+                        loadProfosmotrData();
+                    } else {
+                        showNotification('Ошибка при сохранении: ' + response.message, 'error');
+                    }
+                }).catch(function(error) {
+                    showNotification('Ошибка при сохранении', 'error');
+                    console.error(error);
+                });
+                return;
+            } else if (e.key === '+') {
+                e.preventDefault();
+                currentProfosmotrId = null;
+                
+                // Очистить select-ы
+                $('#crb-select').val('').trigger('change');
+                $('#lpu-select').val('').trigger('change');
+                $('#study-type-select').val('').trigger('change');
+                $('#lab-select').val('').trigger('change');
+
+                // Очистить верхние поля
+                document.getElementById('steclo-input').value = '';
+                document.getElementById('pathologies-input').value = '';
+                document.getElementById('liquid-checkbox').checked = false;
+                document.getElementById('traditional-checkbox').checked = false;
+
+                // Очистить правую таблицу
+                rightTableData.length = 0;
+                const cytologistTable = [
+                    ['NILM', 'nilm_tabl_doctot', 'nilm_tabl_lab'],
+                    ['ASCUS', 'ascus_tabl_doctot', null],
+                    ['ASC-H', 'asc_h_tabl_doctot', null],
+                    ['CIN I', 'cin_i_tabl_doctot', null],
+                    ['CIN II', 'cin_ii_tabl_doctot', null],
+                    ['CIN III', 'cin_iii_tabl_doctot', null],
+                    ['Подозр. на рак', 'suspicion_tabl_doctot', null],
+                    ['Cr(ccs)', 'cr_tabl_doctot', null],
+                    ['Ат. кл. хл. эп. ан (AGC)', 'sgc_tabl_doctot', null],
+                    ['AGC(fn.)', 'cuspicion_tumor_tabl_doctot', null],
+                    ['AgCa', 'adenocarcinoma_tabl_doctot', null],
+                    ['Прочие', 'others_tabl_doctot', null],
+                    ['воспаление+HPV', 'hpv', null],
+                    ['LSIL+HPV', 'lsil_hpv', null]
+                ];
+                cytologistTable.forEach(([cyt]) => {
+                    rightTableData.push({
+                        cytologist: cyt,
+                        doctorLab: '',
+                        lab: '',
+                        conclusion: ''
+                    });
+                });
+
+                // Добавить строку "Итого"
+                rightTableData.push({
+                    cytologist: 'Итого',
+                    doctorLab: '0',
+                    lab: '0',
+                    conclusion: ''
+                });
+
+                populateRightTable();
+                showNotification('Создан новый профосмотр', 'success');
+                return;
+            } else if (e.key === 'Escape') {
+                showNotification('Выйти без сохранения', 'success');
+                return;
+            }
+
+            // Обработка клавиш навигации
+            if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const direction = e.key.replace('Arrow', '').toLowerCase();
+                const nextElement = getNextFocusableElement(currentFocusElement, direction);
+
+                if (nextElement) {
+                    // Если текущий элемент Select2 - закрываем его
+                    if (currentFocusElement.classList.contains('select2-container')) {
+                        const currentId = currentFocusElement.previousElementSibling?.id;
+                        if (currentId) {
+                            $(`#${currentId}`).select2('close');
+                        }
+                    }
+
+                    // Обновляем выделение
+                    updateKeyboardFocus(nextElement);
+
+                    // Если следующий элемент Select2 - открываем его
+                    if (nextElement.classList.contains('select2-container')) {
+                        const nextId = nextElement.previousElementSibling?.id;
+                        if (nextId) {
+                            $(`#${nextId}`).select2('open');
+                        }
+                    } else {
+                        nextElement.focus();
+                    }
+                }
+            }
+        });
+
+        // Обновляем позицию выделения при прокрутке
+        document.addEventListener('scroll', function() {
+            if (currentFocusElement) {
+                updateKeyboardFocus(currentFocusElement);
+            }
+        });
+
+        // Обновляем позицию выделения при изменении размера окна
+        window.addEventListener('resize', function() {
+            if (currentFocusElement) {
+                updateKeyboardFocus(currentFocusElement);
+            }
+        });
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Очищаем все существующие Select2 элементы
+            $('.select2-container').remove();
+            $('select').removeClass('select2-hidden-accessible');
+            
+            loadCRBData();
+            loadLPUData();
+            loadStudyTypes();
+            loadPhysiciansAndLabs();
+            loadProfosmotrData();
+            populateRightTable();
+            createKeyboardFocus();
+            // Set initial focus to the first focusable element
+            const firstFocusable = document.querySelector('select, input, .select2-container');
+            if (firstFocusable) {
+                firstFocusable.focus();
+                updateKeyboardFocus(firstFocusable);
+            }
+        });
+        document.getElementById('save-button').addEventListener('click', function() {
+            // Проверка обязательных полей
+            const selectedCRB = document.getElementById('crb-select').value;
+            const selectedLPU = document.getElementById('lpu-select').value;
+            const selectedStudyType = document.getElementById('study-type-select').value;
+            const selectedDoctor = document.getElementById('doctor-select').value;
+            const selectedLab = document.getElementById('lab-select').value;
+            const steclo = document.getElementById('steclo-input').value;
+            const pathologies = document.getElementById('pathologies-input').value;
+
+            // Проверяем, что выбран хотя бы один из двух списков ЦРБ
+            const finalCRB = selectedCRB || selectedLPU;
+            if (!finalCRB) {
+                showNotification('Выберите ЦРБ из одного из списков', 'error');
+                return;
+            }
+            if (!selectedStudyType) {
+                showNotification('Выберите тип исследования', 'error');
+                return;
+            }
+            if (!selectedLab) {
+                showNotification('Выберите лаборанта', 'error');
+                return;
+            }
+            if (!steclo) {
+                showNotification('Введите количество стекол', 'error');
+                return;
+            }
+
+            // Проверяем итоги
+            if (!validateTotals()) {
+                showNotification('Невозможно сохранить: итог не сходится', 'error');
+                return;
+            }
+
+            // Собираем значения из формы
+            const liquid = document.getElementById('liquid-checkbox').checked;
+            const traditional = document.getElementById('traditional-checkbox').checked;
+
+            // Собираем значения из правой таблицы
+            const getValue = (cytologist, field) => {
+                const row = rightTableData.find(r => r.cytologist === cytologist);
+                return row ? row[field] : '';
+            };
+
+            // Вызов fetch API для сохранения
+            const formData = new FormData();
+            formData.append('lpu_id', finalCRB);
+            formData.append('lpu_source', selectedLPU ? 'lpu' : 'organ');
+            formData.append('date', new Date().toISOString().slice(0, 10));
+            formData.append('doctor_prof', selectedDoctor);
+            formData.append('laborant_prof', selectedLab);
+            formData.append('profosmotr_prof', selectedStudyType);
+            formData.append('steclo_prof', steclo);
+            formData.append('pathologies_prof', pathologies);
+            formData.append('liquid_prof', liquid);
+            formData.append('traditional_prof', traditional);
+            formData.append('nilm_tabl_doctot', getValue('NILM', 'doctorLab'));
+            formData.append('ascus_tabl_doctot', getValue('ASCUS', 'doctorLab'));
+            formData.append('asc_h_tabl_doctot', getValue('ASC-H', 'doctorLab'));
+            formData.append('cin_i_tabl_doctot', getValue('CIN I', 'doctorLab'));
+            formData.append('cin_ii_tabl_doctot', getValue('CIN II', 'doctorLab'));
+            formData.append('cin_iii_tabl_doctot', getValue('CIN III', 'doctorLab'));
+            formData.append('suspicion_tabl_doctot', getValue('Подозр. на рак', 'doctorLab'));
+            formData.append('cr_tabl_doctot', getValue('Cr(ccs)', 'doctorLab'));
+            formData.append('sgc_tabl_doctot', getValue('Ат. кл. хл. эп. ан (AGC)', 'doctorLab'));
+            formData.append('cuspicion_tumor_tabl_doctot', getValue('AGC(fn.)', 'doctorLab'));
+            formData.append('adenocarcinoma_tabl_doctot', getValue('AgCa', 'doctorLab'));
+            formData.append('others_tabl_doctot', getValue('Прочие', 'doctorLab'));
+            formData.append('hpv', getValue('воспаление+HPV', 'doctorLab'));
+            formData.append('lsil_hpv', getValue('LSIL+HPV', 'doctorLab'));
+            formData.append('nilm_tabl_lab', getValue('NILM', 'lab'));
+            formData.append('profosmotr_id', currentProfosmotrId || '');
+
+            fetch('/api/save_profosmotr_lpu', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(function(response) {
+                if (response.status === "success") {
+                    showNotification('Данные успешно сохранены', 'success');
+                    loadProfosmotrData();
+                } else {
+                    showNotification('Ошибка при сохранении: ' + response.message, 'error');
+                }
+            }).catch(function(error) {
+                showNotification('Ошибка при сохранении', 'error');
+                console.error(error);
+            });
+        });
+
+        // Добавляем обработчик для очистки красной рамки при вводе
+        document.querySelectorAll('#right-table-body input').forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    this.style.borderColor = '';
+                }
+            });
+        });
+
+        // Инициализация Select2
+        function initializeSelect2(selector) {
+            $(selector).select2({
+                placeholder: "Выберите значение",
+                allowClear: true,
+                width: '100%',
+                dropdownAutoWidth: true,
+                minimumInputLength: 0
+            }).on('select2:open', function() {
+                const select2Container = document.querySelector(`#${this.id} + .select2-container`);
+                if (select2Container) {
+                    currentFocusElement = select2Container;
+                    updateKeyboardFocus(select2Container);
+                }
+            }).on('select2:close', function() {
+                const select2Container = document.querySelector(`#${this.id} + .select2-container`);
+                if (select2Container) {
+                    currentFocusElement = select2Container;
+                    updateKeyboardFocus(select2Container);
+                }
+            }).on('select2:select', function() {
+                const select2Container = document.querySelector(`#${this.id} + .select2-container`);
+                if (select2Container) {
+                    currentFocusElement = select2Container;
+                    updateKeyboardFocus(select2Container);
+                }
+            });
+        }
+
+        // Load CRB data with Select2
+        function loadCRBData() {
+            const select = $('#crb-select');
+            if (!select.length) {
+                console.error('Элемент select не найден');
+                return;
+            }
+
+            select.select2({
+                placeholder: "Выберите ЦРБ",
+                allowClear: true,
+                width: '100%',
+                dropdownAutoWidth: true,
+                minimumInputLength: 0,
+                matcher: function(params, data) {
+                    if ($.trim(params.term) === '') {
+                        return data;
+                    }
+                    if (typeof data.text === 'undefined') {
+                        return null;
+                    }
+                    if (data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1) {
+                        return data;
+                    }
+                    return null;
+                }
+            });
+
+            // Auto-focus search input when dropdown opens
+            select.on('select2:open', function() {
+                setTimeout(() => {
+                    const searchInput = document.querySelector('.select2-search__field');
+                    if (searchInput) {
+                        searchInput.focus();
+                    }
+                }, 0);
+            });
+
+            fetch('/api/load_organ_data')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(function(data) {
+                    select.empty();
+                    select.append(new Option("Выберите ЦРБ", "", true, true));
+                    $.each(data, function(index, item) {
+                        select.append(new Option(item.text || item.name_short || '', item.id));
+                    });
+                }).catch(function(error) {
+                    console.error('Ошибка при загрузке данных ЦРБ:', error);
+                });
+        }
+
+        // Load LPU data (old list) with Select2
+        function loadLPUData() {
+            const select = $('#lpu-select');
+            if (!select.length) {
+                console.error('Элемент lpu-select не найден');
+                return;
+            }
+
+            select.select2({
+                placeholder: "Выберите ЦРБ (старый список)",
+                allowClear: true,
+                width: '100%',
+                dropdownAutoWidth: true,
+                minimumInputLength: 0,
+                matcher: function(params, data) {
+                    if ($.trim(params.term) === '') {
+                        return data;
+                    }
+                    if (typeof data.text === 'undefined') {
+                        return null;
+                    }
+                    if (data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1) {
+                        return data;
+                    }
+                    return null;
+                }
+            });
+
+            // Auto-focus search input when dropdown opens
+            select.on('select2:open', function() {
+                setTimeout(() => {
+                    const searchInput = document.querySelector('.select2-search__field');
+                    if (searchInput) {
+                        searchInput.focus();
+                    }
+                }, 0);
+            });
+
+            fetch('/api/get_lpu_data')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(function(data) {
+                    select.empty();
+                    select.append(new Option("Выберите ЦРБ (старый список)", "", true, true));
+                    $.each(data, function(index, item) {
+                        const displayText = item.region ? `${item.name} (${item.region})` : item.name;
+                        select.append(new Option(displayText, item.id));
+                    });
+                }).catch(function(error) {
+                    console.error('Ошибка при загрузке данных ЦРБ (старый список):', error);
+                });
+        }
+
+        // Load study types with Select2
+        function loadStudyTypes() {
+            fetch('/api/get_service_types')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(function(response) {
+                if (response.status === "success") {
+                    const studyTypeSelect = $('#study-type-select');
+                    // Уничтожаем существующий Select2, если он есть
+                    if (studyTypeSelect.hasClass('select2-hidden-accessible')) {
+                        studyTypeSelect.select2('destroy');
+                    }
+                    studyTypeSelect.empty();
+                    studyTypeSelect.append(new Option("Выберите тип исследования", "", true, true));
+                    response.data.forEach(function(item) {
+                        studyTypeSelect.append(new Option(item.name, item.id));
+                    });
+                    studyTypeSelect.select2({
+                        placeholder: "Выберите тип исследования",
+                        allowClear: true,
+                        width: '100%',
+                        dropdownAutoWidth: true,
+                        minimumInputLength: 0,
+                        matcher: function(params, data) {
+                            if ($.trim(params.term) === '') {
+                                return data;
+                            }
+                            if (typeof data.text === 'undefined') {
+                                return null;
+                            }
+                            if (data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1) {
+                                return data;
+                            }
+                            return null;
+                        }
+                    });
+                    // Auto-focus search input
+                    studyTypeSelect.on('select2:open', function() {
+                        setTimeout(() => {
+                            const searchInput = document.querySelector('.select2-search__field');
+                            if (searchInput) {
+                                searchInput.focus();
+                            }
+                        }, 0);
+                    });
+                }
+            });
+        }
+
+        // Load physicians and lab technicians with Select2
+        function loadPhysiciansAndLabs() {
+            // Physicians
+            fetch('/api/get_physicians')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(function(response) {
+                if (response.status === "success") {
+                    const doctorSelect = $('#doctor-select');
+                    // Уничтожаем существующий Select2, если он есть
+                    if (doctorSelect.hasClass('select2-hidden-accessible')) {
+                        doctorSelect.select2('destroy');
+                    }
+                    doctorSelect.empty();
+                    doctorSelect.append(new Option("Выберите врача", "", true, true));
+                    response.data.forEach(function(item) {
+                        doctorSelect.append(new Option(item.name, item.id));
+                    });
+                    doctorSelect.select2({
+                        placeholder: "Выберите врача",
+                        allowClear: true,
+                        width: '100%',
+                        dropdownAutoWidth: true,
+                        minimumInputLength: 0,
+                        matcher: function(params, data) {
+                            if ($.trim(params.term) === '') {
+                                return data;
+                            }
+                            if (typeof data.text === 'undefined') {
+                                return null;
+                            }
+                            if (data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1) {
+                                return data;
+                            }
+                            return null;
+                        }
+                    });
+                    // Auto-focus search input
+                    doctorSelect.on('select2:open', function() {
+                        setTimeout(() => {
+                            const searchInput = document.querySelector('.select2-search__field');
+                            if (searchInput) {
+                                searchInput.focus();
+                            }
+                        }, 0);
+                    });
+                }
+            });
+
+            // Lab technicians
+            fetch('/api/get_lab_technicians')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(function(response) {
+                if (response.status === "success") {
+                    const labSelect = $('#lab-select');
+                    // Уничтожаем существующий Select2, если он есть
+                    if (labSelect.hasClass('select2-hidden-accessible')) {
+                        labSelect.select2('destroy');
+                    }
+                    labSelect.empty();
+                    labSelect.append(new Option("Выберите лаборанта", "", true, true));
+                    response.data.forEach(function(item) {
+                        labSelect.append(new Option(item.name, item.id));
+                    });
+                    labSelect.select2({
+                        placeholder: "Выберите лаборанта",
+                        allowClear: true,
+                        width: '100%',
+                        dropdownAutoWidth: true,
+                        minimumInputLength: 0,
+                        matcher: function(params, data) {
+                            if ($.trim(params.term) === '') {
+                                return data;
+                            }
+                            if (typeof data.text === 'undefined') {
+                                return null;
+                            }
+                            if (data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1) {
+                                return data;
+                            }
+                            return null;
+                        }
+                    });
+                    // Auto-focus search input
+                    labSelect.on('select2:open', function() {
+                        setTimeout(() => {
+                            const searchInput = document.querySelector('.select2-search__field');
+                            if (searchInput) {
+                                searchInput.focus();
+                            }
+                        }, 0);
+                    });
+                }
+            });
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification ' + type;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Очищаем все существующие Select2 элементы
+            $('.select2-container').remove();
+            $('select').removeClass('select2-hidden-accessible');
+            
+            loadCRBData();
+            loadLPUData();
+            loadPhysiciansAndLabs();
+            loadProfosmotrData();
+            populateRightTable();
+            createKeyboardFocus();
+            
+            // Set initial focus to the first focusable element
+            const firstFocusable = document.querySelector('select, input, .select2-container');
+            if (firstFocusable) {
+                firstFocusable.focus();
+                updateKeyboardFocus(firstFocusable);
+            }
+        });
+    </script>
+</body>
+</html>
