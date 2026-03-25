@@ -5,7 +5,6 @@ import com.vaadin.flow.component.*
 import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.button.ButtonVariant
 import com.vaadin.flow.component.checkbox.Checkbox
-import com.vaadin.flow.component.checkbox.CheckboxVariant
 import com.vaadin.flow.component.dependency.CssImport
 import com.vaadin.flow.component.html.*
 import com.vaadin.flow.component.icon.Icon
@@ -16,9 +15,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.component.textfield.PasswordField
-import com.vaadin.flow.component.textfield.PasswordFieldVariant
 import com.vaadin.flow.component.textfield.TextField
-import com.vaadin.flow.component.textfield.TextFieldVariant
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
@@ -45,17 +42,17 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
     private val usernameField = TextField("Логин").apply {
         width = "100%"
         placeholder = "Введите логин"
-        addThemeVariants(TextFieldVariant.LUMO_LARGE)
+        setThemeName("large")
     }
 
     private val passwordField = PasswordField("Пароль").apply {
         width = "100%"
         placeholder = "Введите пароль"
-        addThemeVariants(PasswordFieldVariant.LUMO_LARGE)
+        setThemeName("large")
     }
 
     private val rememberMeCheckbox = Checkbox("Запомнить меня").apply {
-        addThemeVariants(CheckboxVariant.LUMO_SMALL)
+        setThemeName("small")
     }
 
     private val loginButton = Button("Войти").apply {
@@ -87,13 +84,13 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
     private val adminUsernameField = TextField("Логин").apply {
         width = "100%"
         placeholder = "Введите логин администратора"
-        addThemeVariants(TextFieldVariant.LUMO_LARGE)
+        setThemeName("large")
     }
 
     private val adminPasswordField = PasswordField("Пароль").apply {
         width = "100%"
         placeholder = "Введите пароль администратора"
-        addThemeVariants(PasswordFieldVariant.LUMO_LARGE)
+        setThemeName("large")
     }
 
     private val adminErrorAlert = Div().apply {
