@@ -1,65 +1,46 @@
 ```
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Kotlin
+*.kt.bak
+*.kotlin_metadata
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.hprof
+
 # Dependencies
-temp_project/
+libs/
+lib/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
 
 # Environment
 .env
 .env.local
-.env.*
+*.env*
 
-# Editors
-.vscode/
-.idea/
-
-# Logs and temp files
-*.log
+# Temporary files
 *.tmp
-*.swp
-
-# Compiled and build artifacts
-*.pyc
-__pycache__/
-*.o
-*.obj
-*.exe
-*.dll
-*.so
-*.a
-*.out
-dist/
-build/
-target/
-
-# System files
-.DS_Store
-Thumbs.db
-
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# Compressed files
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
+*.temp
+*~
 ```
