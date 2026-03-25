@@ -3,17 +3,22 @@ package com.citologic.ui
 import com.citologic.service.CustomUserDetailsService
 import com.vaadin.flow.component.*
 import com.vaadin.flow.component.button.Button
+import com.vaadin.flow.component.button.ButtonVariant
 import com.vaadin.flow.component.checkbox.Checkbox
+import com.vaadin.flow.component.checkbox.CheckboxVariant
 import com.vaadin.flow.component.dependency.CssImport
 import com.vaadin.flow.component.html.*
 import com.vaadin.flow.component.icon.Icon
 import com.vaadin.flow.component.icon.VaadinIcon
 import com.vaadin.flow.component.notification.Notification
 import com.vaadin.flow.component.orderedlayout.FlexComponent
+import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.component.textfield.PasswordField
+import com.vaadin.flow.component.textfield.PasswordFieldVariant
 import com.vaadin.flow.component.textfield.TextField
+import com.vaadin.flow.component.textfield.TextFieldVariant
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
@@ -39,13 +44,13 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
 
     private val usernameField = TextField("Логин").apply {
         width = "100%"
-        setPlaceholder("Введите логин")
+        placeholder = "Введите логин"
         addThemeVariants(TextFieldVariant.LUMO_LARGE)
     }
 
     private val passwordField = PasswordField("Пароль").apply {
         width = "100%"
-        setPlaceholder("Введите пароль")
+        placeholder = "Введите пароль"
         addThemeVariants(PasswordFieldVariant.LUMO_LARGE)
     }
 
@@ -64,7 +69,7 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
         addClassName("error-alert")
         val icon = Icon(VaadinIcon.EXCLAMATION_CIRCLE_O)
         val messageSpan = Span()
-        messageSpan.id = "errorMessage"
+        messageSpan.element.setAttribute("id", "errorMessage")
         add(icon, messageSpan)
     }
 
@@ -81,13 +86,13 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
 
     private val adminUsernameField = TextField("Логин").apply {
         width = "100%"
-        setPlaceholder("Введите логин администратора")
+        placeholder = "Введите логин администратора"
         addThemeVariants(TextFieldVariant.LUMO_LARGE)
     }
 
     private val adminPasswordField = PasswordField("Пароль").apply {
         width = "100%"
-        setPlaceholder("Введите пароль администратора")
+        placeholder = "Введите пароль администратора"
         addThemeVariants(PasswordFieldVariant.LUMO_LARGE)
     }
 
@@ -96,7 +101,7 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
         addClassName("error-alert")
         val icon = Icon(VaadinIcon.EXCLAMATION_CIRCLE_O)
         val messageSpan = Span()
-        messageSpan.id = "adminErrorMessage"
+        messageSpan.element.setAttribute("id", "adminErrorMessage")
         add(icon, messageSpan)
     }
 
@@ -113,8 +118,8 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
 
     init {
         setSizeFull()
-        justifyContentMode = JustifyContentMode.CENTER
-        alignItemsItems = Alignment.CENTER
+        justifyContentMode = FlexComponent.JustifyContentMode.CENTER
+        alignItems(Alignment.CENTER)
         addClassName("login-page")
 
         // Admin settings icon
@@ -130,14 +135,13 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
         val loginContainer = VerticalLayout().apply {
             addClassName("login-container")
             setPadding(true)
-            isHorizontal = false
             width = "400px"
             maxWidth = "100%"
 
             // Header with logo placeholder
             val headerDiv = Div().apply {
                 addClassName("login-header")
-                textAlign = "center"
+                style.set("text-align", "center")
                 
                 val logoPlaceholder = Div().apply {
                     addClassName("logo-placeholder")
@@ -160,7 +164,7 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
 
             val formLayout = VerticalLayout().apply {
                 setPadding(false)
-                spacing = false
+                isSpacing = false
                 width = "100%"
 
                 add(usernameField)
@@ -170,7 +174,7 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
                 
                 val buttonWrapper = HorizontalLayout(loginButton).apply {
                     width = "100%"
-                    justifyContentMode = JustifyContentMode.CENTER
+                    justifyContentMode = FlexComponent.JustifyContentMode.CENTER
                     style.set("margin-top", "1rem")
                 }
                 add(buttonWrapper)
@@ -181,7 +185,7 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
             // Footer
             val footer = Div().apply {
                 addClassName("login-footer")
-                textAlign = "center"
+                style.set("text-align", "center")
                 style.set("margin-top", "2rem")
                 style.set("font-size", "0.9rem")
                 style.set("color", "#6c757d")
@@ -200,13 +204,13 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
             }
 
             val adminHeader = H2("Вход для администратора").apply {
-                textAlign = "center"
+                style.set("text-align", "center")
                 style.set("margin-bottom", "1.5rem")
             }
 
             val adminForm = VerticalLayout().apply {
                 setPadding(false)
-                spacing = false
+                isSpacing = false
                 width = "100%"
 
                 add(adminUsernameField)
@@ -215,7 +219,7 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
                 
                 val adminButtonWrapper = HorizontalLayout(adminLoginButton).apply {
                     width = "100%"
-                    justifyContentMode = JustifyContentMode.CENTER
+                    justifyContentMode = FlexComponent.JustifyContentMode.CENTER
                     style.set("margin-top", "1rem")
                 }
                 add(adminButtonWrapper)
