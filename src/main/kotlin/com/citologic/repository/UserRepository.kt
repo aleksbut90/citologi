@@ -3,6 +3,7 @@ package com.citologic.repository
 import com.citologic.model.UsersTable
 import com.citologic.model.UserDto
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.stereotype.Repository
 import java.time.Instant
@@ -115,7 +116,7 @@ class UserRepository {
     }
 
     fun delete(id: String): Boolean = transaction {
-        UsersTable.deleteWhere { UsersTable.id eq id } > 0
+        UsersTable.deleteWhere{ UsersTable.id eq id } > 0
     }
 
     fun updateFailedAttempts(id: String, failedAttempts: Int, lockUntil: Instant?): Boolean = transaction {

@@ -30,29 +30,23 @@ import java.time.LocalDateTime
 
 @Route("login")
 @AnonymousAllowed
-@CssImport(value = "./styles/login-styles.css", themeFor = "vaadin-login-form")
-class LoginView : VerticalLayout(), BeforeEnterObserver {
-
-    @Autowired
-    private lateinit var authenticationManager: AuthenticationManager
-
-    @Autowired
-    private lateinit var userDetailsService: CustomUserDetailsService
+@CssImport("./styles/login-styles.css")
+class LoginView(
+    private val authenticationManager: AuthenticationManager,
+    private val userDetailsService: CustomUserDetailsService
+) : VerticalLayout(), BeforeEnterObserver {
 
     private val usernameField = TextField("Логин").apply {
         width = "100%"
         placeholder = "Введите логин"
-        setThemeName("large")
     }
 
     private val passwordField = PasswordField("Пароль").apply {
         width = "100%"
         placeholder = "Введите пароль"
-        setThemeName("large")
     }
 
     private val rememberMeCheckbox = Checkbox("Запомнить меня").apply {
-        setThemeName("small")
     }
 
     private val loginButton = Button("Войти").apply {
@@ -84,13 +78,11 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
     private val adminUsernameField = TextField("Логин").apply {
         width = "100%"
         placeholder = "Введите логин администратора"
-        setThemeName("large")
     }
 
     private val adminPasswordField = PasswordField("Пароль").apply {
         width = "100%"
         placeholder = "Введите пароль администратора"
-        setThemeName("large")
     }
 
     private val adminErrorAlert = Div().apply {
@@ -116,7 +108,7 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
     init {
         setSizeFull()
         justifyContentMode = FlexComponent.JustifyContentMode.CENTER
-        alignItems(Alignment.CENTER)
+        alignItems = Alignment.CENTER
         addClassName("login-page")
 
         // Admin settings icon
@@ -366,9 +358,12 @@ class LoginView : VerticalLayout(), BeforeEnterObserver {
     }
 
     override fun beforeEnter(event: BeforeEnterEvent) {
-        // Check if already logged in
         val auth = SecurityContextHolder.getContext().authentication
-        if (auth != null && auth.isAuthenticated && auth.principal != "anonymousUser") {
+
+        if (auth != null &&
+            auth.isAuthenticated &&
+            auth !is org.springframework.security.authentication.AnonymousAuthenticationToken
+        ) {
             event.rerouteTo("/")
         }
     }
