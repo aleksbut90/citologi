@@ -104,13 +104,13 @@ class UserRepository {
         password: String? = null,
         status: String? = null
     ): Boolean = transaction {
-        UsersTable.update({ UsersTable.id eq id }) {
-            login?.let { it[UsersTable.login] = login }
-            fioName?.let { it[UsersTable.fioName] = fioName }
-            passwordHash?.let { it[UsersTable.passwordHash] = passwordHash }
-            passwordSalt?.let { it[UsersTable.passwordSalt] = passwordSalt }
-            password?.let { it[UsersTable.password] = password }
-            status?.let { it[UsersTable.status] = status }
+        UsersTable.update({ UsersTable.id eq id }) { userUpdate ->
+            login?.let { userUpdate[UsersTable.login] = login }
+            fioName?.let { userUpdate[UsersTable.fioName] = fioName }
+            passwordHash?.let { userUpdate[UsersTable.passwordHash] = passwordHash }
+            passwordSalt?.let { userUpdate[UsersTable.passwordSalt] = passwordSalt }
+            password?.let { userUpdate[UsersTable.password] = password }
+            status?.let { userUpdate[UsersTable.status] = status }
         } > 0
     }
 

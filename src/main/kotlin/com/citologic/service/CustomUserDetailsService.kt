@@ -1,7 +1,7 @@
 package com.citologic.service
 
 import com.citologic.repository.UserRepository
-import org.jetbrains.exposed.sql.transaction
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
@@ -97,27 +97,25 @@ class CustomUserDetailsService(
      */
     fun registerUser(login: String, rawPassword: String, fioName: String? = null, id: String): Boolean {
         return try {
-            transaction {
-                // Проверяем, существует ли пользователь
-                if (userRepository.findByUsername(login) != null) {
-                    return@transaction false
-                }
-                
-                // Генерируем соль и хэшируем пароль
-                val salt = generatePasswordSalt()
-                val passwordHash = hashPasswordWithSalt(rawPassword, salt)
-                
-                // Создаем пользователя
-                userRepository.create(
-                    id = id,
-                    login = login,
-                    fioName = fioName,
-                    passwordHash = passwordHash,
-                    passwordSalt = salt,
-                    status = "active"
-                )
-                true
+            // Проверяем, существует ли пользователь
+            if (userRepository.findByUsername(login) != null) {
+                return false
             }
+            
+            // Генерируем соль и хэшируем пароль
+            val salt = generatePasswordSalt()
+            val passwordHash = hashPasswordWithSalt(rawPassword, salt)
+            
+            // Создаем пользователя
+            userRepository.create(
+                id = id,
+                login = login,
+                fioName = fioName,
+                passwordHash = passwordHash,
+                passwordSalt = salt,
+                status = "active"
+            )
+            true
         } catch (e: Exception) {
             false
         }
@@ -128,18 +126,16 @@ class CustomUserDetailsService(
      */
     fun updatePassword(userId: String, rawPassword: String): Boolean {
         return try {
-            transaction {
-                val salt = generatePasswordSalt()
-                val passwordHash = hashPasswordWithSalt(rawPassword, salt)
-                
-                userRepository.update(
-                    id = userId,
-                    passwordHash = passwordHash,
-                    passwordSalt = salt,
-                    password = null // Очищаем старый пароль в простом формате
-                )
-                true
-            }
+            val salt = generatePasswordSalt()
+            val passwordHash = hashPasswordWithSalt(rawPassword, salt)
+            
+            userRepository.update(
+                id = userId,
+                passwordHash = passwordHash,
+                passwordSalt = salt,
+                password = null // Очищаем старый пароль в простом формате
+            )
+            true
         } catch (e: Exception) {
             false
         }

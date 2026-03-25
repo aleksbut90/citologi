@@ -17,9 +17,15 @@ class SecurityConfig(
 ) : VaadinWebSecurity() {
 
     @Bean
-    fun passwordEncoder(): PasswordEncoder = PasswordEncoder { 
-        // Этот PasswordEncoder не используется для кодирования, только для проверки
-        throw UnsupportedOperationException("Use CustomUserDetailsService.verifyPassword instead")
+    fun passwordEncoder(): PasswordEncoder = object : PasswordEncoder {
+        override fun encode(rawPassword: CharSequence): String {
+            throw UnsupportedOperationException("Use CustomUserDetailsService.hashPasswordWithSalt instead")
+        }
+
+        override fun matches(rawPassword: CharSequence, encodedPassword: String): Boolean {
+            // Эта проверка не используется для старых паролей
+            return false
+        }
     }
 
     @Bean

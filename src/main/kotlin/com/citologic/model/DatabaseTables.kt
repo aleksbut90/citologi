@@ -3,6 +3,7 @@ package com.citologic.model
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.timestamp
+import org.jetbrains.exposed.sql.functions.CurrentDateTime
 import java.time.LocalDate
 import java.time.Instant
 
@@ -27,7 +28,7 @@ object UserSessions : Table("user_sessions") {
     val id = integer("id").autoIncrement()
     val userId = varchar("user_id", 255)
     val sessionHash = varchar("session_hash", 255)
-    val createdAt = timestamp("created_at").defaultExpression(org.jetbrains.exposed.sql.CurrentDateTime())
+    val createdAt = timestamp("created_at").defaultExpression(CurrentDateTime)
     val expiresAt = timestamp("expires_at")
     val isActive = bool("is_active").default(true)
     val sessionId = integer("session_id").nullable()
@@ -73,7 +74,7 @@ object Materials : Table("materials") {
     val isReviewed = varchar("is_reviewed", 255).nullable()
     val studiesId = varchar("studies_id", 255).nullable()
     val gisologComment = varchar("gisolog_comment", 255).nullable()
-    val subdepartmentId = varchar("subdepartment_id").nullable()
+    val subdepartmentId = varchar("subdepartment_id", 255).nullable()
     val ciphersId = varchar("ciphers_id", 255).nullable()
     val version = integer("version").default(0)
     val lockedByUserId = varchar("locked_by_user_id", 255).nullable()
@@ -114,7 +115,7 @@ object Studies : Table("studies") {
 object Otdel : Table("otdel") {
     val id = varchar("id", 32)
     val department = varchar("department", 255).nullable()
-    val podotdelId = varchar("podotdel_id").nullable()
+    val podotdelId = varchar("podotdel_id", 255).nullable()
 
     override val primaryKey = PrimaryKey(id)
 }
@@ -124,7 +125,7 @@ object Physicians : Table("physicians") {
     val id = integer("id").autoIncrement()
     val fullName = varchar("full_name", 255)
     val role = varchar("role", 50)
-    val createdAt = timestamp("created_at").defaultExpression(org.jetbrains.exposed.sql.CurrentDateTime())
+    val createdAt = timestamp("created_at").defaultExpression(CurrentDateTime)
 
     override val primaryKey = PrimaryKey(id)
 }

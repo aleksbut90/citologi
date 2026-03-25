@@ -16,23 +16,22 @@ node_modules/
 venv/
 .venv/
 
-# Logs and temp files
-*.log
-*.tmp
-*.swp
-
-# Environment
-.env
-.env.local
-*.env.*
-
 # Editors
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# Logs and temp files
+*.log
+*.tmp
 
 # System files
 .DS_Store
 Thumbs.db
+.env
+.env.local
+*.env.*
 
 # Coverage
 coverage/
