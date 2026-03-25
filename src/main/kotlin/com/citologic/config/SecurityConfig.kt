@@ -31,6 +31,7 @@ class SecurityConfig(
                 authorize
                     .requestMatchers("/login").permitAll()
                     .requestMatchers("/public/**").permitAll()
+                    .requestMatchers("/admin/**").hasRole("ADMIN")
                     .anyRequest().authenticated()
             }
             .formLogin { form ->
