@@ -1,0 +1,1309 @@
+
+
+
+
+/* 
+вариант 2 */
+/* Modernized CSS for the application with blue-purple medical theme */
+
+/* Base styles */
+:root {
+    /* Blue-purple palette from provided CSS */
+    --primary-blue: #3b82f6;
+    --primary-blue-dark: #2563eb;
+    --primary-purple: #8b5cf6;
+    --primary-purple-dark: #7c3aed;
+    --secondary-indigo: #6366f1;
+    --secondary-indigo-dark: #4f46e5;
+    --accent-cyan: #06b6d4;
+    --accent-cyan-dark: #0891b2;
+    
+    /* Non-white backgrounds */
+    --background-light: #f1f5ff;
+    --background-primary: #e0e7ff;
+    --background-secondary: #f3f4f6;
+    --background-card: #f8fafc;
+    --background-gradient: linear-gradient(135deg, #f1f5ff 0%, #e0e7ff 50%, #f3f4f6 100%);
+    --background-card-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5ff 100%);
+    
+    /* Text colors */
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --text-white: #ffffff; /* Only for text on dark backgrounds */
+    
+    /* Borders and shadows */
+    --border-light: #e2e8f0;
+    --border-medium: #cbd5e1;
+    --border-accent: #c7d2fe;
+    --shadow-soft: 0 4px 20px rgba(59, 130, 246, 0.15);
+    --shadow-medium: 0 8px 30px rgba(59, 130, 246, 0.2);
+    --shadow-strong: 0 20px 40px rgba(59, 130, 246, 0.3);
+    
+    /* Radius and transitions */
+    --border-radius: 16px;
+    --border-radius-small: 12px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Gradients */
+    --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    --primary-gradient-hover: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    --secondary-gradient: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+    --secondary-gradient-hover: linear-gradient(135deg, #4f46e5 0%, #0891b2 100%);
+    --success-gradient: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+    --success-gradient-hover: linear-gradient(135deg, #059669 0%, #0891b2 100%);
+    --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    --accent-gradient-hover: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+    --warning-gradient: linear-gradient(135deg, #eab308 0%, #f59e0b 100%);
+    --warning-gradient-hover: linear-gradient(135deg, #ca8a04 0%, #d97706 100%);
+    --danger-gradient: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+    --danger-gradient-hover: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
+    
+    /* Special effects */
+    --glass-effect: rgba(248, 250, 252, 0.8);
+    --backdrop-blur: blur(10px);
+    --border-color: rgba(99, 102, 241, 0.2);
+}
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styles */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 1.5rem; /* Retained from styles.css */
+    background: var(--background-gradient);
+    color: var(--text-primary);
+    line-height: 1.6;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Container Styles */
+.container {
+    margin: 0 auto; /* Retained from styles.css */
+    background: var(--background-card-gradient);
+    padding: 1.5rem; /* Retained from styles.css */
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-medium);
+    border: 1px solid var(--border-light);
+    backdrop-filter: var(--backdrop-blur);
+    position: relative;
+}
+
+.container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--primary-gradient);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+/* Header Styles */
+header {
+    display: flex; /* Retained from styles.css */
+    justify-content: space-between; /* Retained from styles.css */
+    align-items: center; /* Retained from styles.css */
+    margin-bottom: 1.5rem; /* Retained from styles.css */
+    background: var(--primary-gradient);
+    border-radius: var(--border-radius);
+    padding: 0.1rem; /* Retained from styles.css */
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-soft);
+    position: relative;
+    overflow: hidden;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+h1 {
+    font-size: 1.8rem; /* Retained from styles.css */
+    font-weight: 700;
+    color: var(--text-white);
+    padding-left: 1rem; /* Retained from styles.css */
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.user-info {
+    font-size: 1rem; /* Retained from styles.css */
+    color: var(--text-white);
+    font-weight: 500; /* Retained from styles.css */
+    padding-right: 1rem; /* Retained from styles.css */
+    opacity: 0.95;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Controls Styles */
+.controls {
+    display: flex; /* Retained from styles.css */
+    flex-direction: row; /* Retained from styles.css */
+    gap: 0.75rem; /* Retained from styles.css */
+    justify-content: flex-end; /* Retained from styles.css */
+    margin-top: 2rem; /* Retained from styles.css */
+    padding: 1.5rem;
+    background: var(--background-card);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-soft);
+}
+
+.controls button {
+    padding: 0.6rem 1.2rem; /* Retained from styles.css */
+    border: none;
+    border-radius: var(--border-radius-small);
+    background: var(--secondary-gradient);
+    color: var(--text-white);
+    font-size: 0.9rem; /* Retained from styles.css */
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.controls button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s;
+}
+
+.controls button:hover::before {
+    left: 100%;
+}
+
+.controls button:hover {
+    background: var(--secondary-gradient-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+}
+
+/* Search Bar Styles */
+.search-bar {
+    display: flex; /* Retained from styles.css */
+    align-items: center; /* Retained from styles.css */
+    gap: 0.5rem; /* Retained from styles.css */
+}
+
+.search-bar input {
+    flex-grow: 1; /* Retained from styles.css */
+    width: 12rem; /* Retained from styles.css */
+    padding: 0.6rem; /* Retained from styles.css */
+    border: 2px solid var(--border-medium);
+    border-radius: var(--border-radius-small);
+    font-size: 0.9rem; /* Retained from styles.css */
+    background-color: var(--background-light);
+    color: var(--text-primary);
+    transition: var(--transition);
+}
+
+.search-bar input:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    outline: none;
+    background: var(--background-primary);
+}
+
+.search-bar button {
+    border: none;
+    background: var(--success-gradient);
+    color: var(--text-white);
+    padding: 0.6rem 1rem; /* Retained from styles.css */
+    border-radius: var(--border-radius-small);
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.search-bar button:hover {
+    background: var(--success-gradient-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* Get Info Form */
+.get-info form {
+    display: flex; /* Retained from styles.css */
+    flex-wrap: wrap; /* Retained from styles.css */
+    gap: 1rem; /* Retained from styles.css */
+    padding: 2rem; /* Retained from styles.css */
+}
+
+.form-info {
+    display: flex; /* Retained from styles.css */
+    align-items: center; /* Retained from styles.css */
+    gap: 0.5rem; /* Retained from styles.css */
+}
+
+.form-info label {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.form-info input {
+    width: 16rem; /* Retained from styles.css */
+    padding: 0.6rem; /* Retained from styles.css */
+    border: 2px solid var(--border-medium);
+    border-radius: var(--border-radius-small);
+    font-size: 0.9rem; /* Retained from styles.css */
+    transition: var(--transition);
+    background: var(--background-light);
+    color: var(--text-primary);
+}
+
+.form-info input:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    outline: none;
+    background: var(--background-primary);
+}
+
+/* General Input and Select Styles */
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+    width: 275px; /* Retained from styles.css */
+    padding: 0.6rem; /* Retained from styles.css */
+    border: 2px solid var(--border-medium);
+    border-radius: var(--border-radius-small);
+    font-size: 0.9rem; /* Retained from styles.css */
+    transition: var(--transition);
+    background-color: var(--background-light);
+    color: var(--text-primary);
+    height: 2.5rem; /* Retained from styles.css */
+    box-sizing: border-box; /* Retained from styles.css */
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    outline: none;
+    background: var(--background-primary);
+}
+
+/* Form Group for Patient Data */
+.form-group {
+    display: flex; /* Retained from styles.css */
+    align-items: center; /* Retained from styles.css */
+    gap: 0.5rem; /* Retained from styles.css */
+    min-width: 20rem; /* Retained from styles.css */
+    margin-bottom: 0.75rem; /* Retained from styles.css */
+}
+
+.form-group label,
+.case-group label,
+.info-group label {
+    text-align: left; /* Retained from styles.css */
+    width: 180px; /* Retained from styles.css */
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group select,
+.info-group input,
+.info-group select,
+.case-group input,
+.case-group select,
+input[type="text"],
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+    width: 300px; /* Retained from styles.css */
+    height: 38px; /* Retained from styles.css */
+    padding: 0.5rem 0.75rem; /* Retained from styles.css */
+    border: 2px solid var(--border-medium);
+    border-radius: var(--border-radius-small);
+    font-size: 0.9rem; /* Retained from styles.css */
+    background-color: var(--background-light);
+    color: var(--text-primary);
+    box-sizing: border-box; /* Retained from styles.css */
+}
+
+/* Updated Select Styles to Match Inputs */
+select {
+    width: 300px; /* Retained from styles.css */
+    height: 38px; /* Retained from styles.css */
+    padding: 0.5rem 0.75rem; /* Retained from styles.css */
+    border: 2px solid var(--border-medium);
+    border-radius: var(--border-radius-small);
+    font-size: 0.9rem; /* Retained from styles.css */
+    background-color: var(--background-light);
+    color: var(--text-primary);
+    box-sizing: border-box; /* Retained from styles.css */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%231e293b" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+}
+
+/* Focus State for Select */
+select:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    outline: none;
+    background: var(--background-primary);
+}
+
+/* Select2 Customization */
+.select2-container {
+    width: 300px !important; /* Retained from styles.css */
+}
+
+.select2-container .select2-selection--single {
+    height: 38px !important; /* Retained from styles.css */
+    border: 2px solid var(--border-medium) !important;
+    border-radius: var(--border-radius-small) !important;
+    background-color: var(--background-light) !important;
+    box-sizing: border-box !important;
+}
+
+.select2-container .select2-selection--single .select2-selection__rendered {
+    line-height: 32px !important; /* Retained from styles.css */
+    padding-left: 0.75rem !important; /* Retained from styles.css */
+    padding-right: 2rem !important; /* Retained from styles.css */
+    color: var(--text-primary) !important;
+    font-size: 0.9rem !important;
+}
+
+.select2-container .select2-selection--single .select2-selection__arrow {
+    height: 36px !important; /* Retained from styles.css */
+    width: 25px !important; /* Retained from styles.css */
+    right: 3px !important; /* Retained from styles.css */
+}
+
+.select2-container--focus .select2-selection--single,
+.select2-container--open .select2-selection--single {
+    border-color: var(--primary-blue) !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15) !important;
+    background-color: var(--background-primary) !important;
+}
+
+.select2-dropdown {
+    border: 2px solid var(--border-medium) !important;
+    border-radius: var(--border-radius-small) !important;
+    background-color: var(--background-light) !important;
+    width: 300px !important; /* Retained from styles.css */
+    z-index: 9998 !important;
+}
+
+/* Wrap long texts inside Select2 dropdown options */
+.select2-container .select2-results__option {
+    white-space: normal !important;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.3;
+}
+
+.select2-container .select2-results__options {
+    max-width: 100% !important;
+}
+
+/* Case Group Styles */
+.case-group {
+    display: flex; /* Retained from styles.css */
+    align-items: center; /* Retained from styles.css */
+    gap: 0.75rem; /* Retained from styles.css */
+    margin-bottom: 0.75rem; /* Retained from styles.css */
+}
+
+/* Info Group Styles */
+.info-group {
+    display: flex; /* Retained from styles.css */
+    align-items: center; /* Retained from styles.css */
+    gap: 0.75rem; /* Retained from styles.css */
+    margin-bottom: 0.75rem; /* Retained from styles.css */
+}
+
+/* Textarea specific styles */
+textarea {
+    min-height: 38px; /* Retained from styles.css */
+    resize: vertical; /* Retained from styles.css */
+}
+
+/* Focus styles */
+input:focus,
+select:focus,
+textarea:focus,
+.select2-container--focus .select2-selection,
+.select2-container--open .select2-selection {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    outline: none;
+    background: var(--background-primary);
+}
+
+/* Specific Buttons */
+#findPatientButton,
+#savebd {
+    width: 100%; /* Retained from styles.css */
+    padding: 0.6rem; /* Retained from styles.css */
+    background: var(--success-gradient);
+    color: var(--text-white);
+    border: none;
+    border-radius: var(--border-radius-small);
+    font-size: 0.9rem; /* Retained from styles.css */
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+#findPatientButton:hover,
+#savebd:hover {
+    background: var(--success-gradient-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+#findPatientButton:active,
+#savebd:active {
+    background: var(--success-gradient-hover);
+    transform: translateY(0);
+}
+
+/* Search Button */
+.search-button {
+    background: var(--success-gradient);
+    color: var(--text-white);
+    border: none;
+    padding: 0.6rem 1rem; /* Retained from styles.css */
+    border-radius: var(--border-radius-small);
+    cursor: pointer;
+    font-size: 0.9rem; /* Retained from styles.css */
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.search-button:hover {
+    background: var(--success-gradient-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* Marking Table */
+.marking-table {
+    background: var(--background-card) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-soft) !important;
+    border: 1px solid var(--border-light) !important;
+    color: var(--text-primary) !important;
+    margin-bottom: 1.5rem !important; /* Retained from styles.css */
+    padding: 1.5rem !important; /* Retained from styles.css */
+    backdrop-filter: var(--backdrop-blur);
+}
+
+.marking-table table {
+    background: transparent !important;
+}
+
+.marking-table th,
+.marking-table td {
+    background: transparent !important;
+    color: var(--text-primary) !important;
+}
+
+.marking-table th {
+    font-weight: 600;
+    background: var(--background-light) !important;
+    color: var(--text-secondary) !important;
+    padding: 1rem;
+    border-bottom: 2px solid var(--border-medium);
+}
+
+.marking-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-light);
+    transition: var(--transition);
+}
+
+.marking-table tr:hover td {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05)) !important;
+}
+
+/* Add Row Button */
+.add-row-button {
+    margin-top: 0.75rem; /* Retained from styles.css */
+    padding: 0.6rem 1.2rem; /* Retained from styles.css */
+    background: var(--success-gradient);
+    color: var(--text-white);
+    border: none;
+    border-radius: var(--border-radius-small);
+    cursor: pointer;
+    font-size: 0.9rem; /* Retained from styles.css */
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.add-row-button:hover {
+    background: var(--success-gradient-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* Flex Container */
+.flex-container {
+    display: flex; /* Retained from styles.css */
+    flex-wrap: wrap; /* Retained from styles.css */
+    gap: 1.5rem; /* Retained from styles.css */
+}
+
+.flex-container > section,
+.section-general {
+    background: var(--background-card);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    backdrop-filter: var(--backdrop-blur);
+}
+
+.flex-container > section {
+    flex: 1 1 30%; /* Retained from styles.css */
+    max-width: 100%; /* Retained from styles.css */
+    padding: 1rem; /* Retained from styles.css */
+    background: var(--background-card);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-soft);
+}
+
+/* Modal Styles */
+.modal {
+    display: none; /* Retained from styles.css */
+    position: fixed; /* Retained from styles.css */
+    z-index: 1000; /* Retained from styles.css */
+    left: 0; /* Retained from styles.css */
+    top: 0; /* Retained from styles.css */
+    width: 100%; /* Retained from styles.css */
+    height: 100%; /* Retained from styles.css */
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: var(--backdrop-blur);
+    overflow: auto; /* Retained from styles.css */
+}
+
+.modal-content {
+    position: relative; /* Retained from styles.css */
+    background: var(--background-card) !important;
+    margin: 5% auto; /* Retained from styles.css */
+    padding: 1.5rem !important; /* Retained from styles.css */
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-strong) !important;
+    width: 90%; /* Retained from styles.css */
+    max-width: 800px; /* Retained from styles.css */
+    max-height: 90vh; /* Retained from styles.css */
+    display: flex; /* Retained from styles.css */
+    flex-direction: column; /* Retained from styles.css */
+    border: 1px solid var(--border-light) !important;
+    animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-primary) !important;
+    backdrop-filter: var(--backdrop-blur);
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-60px) scale(0.95); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.close-button {
+    position: absolute; /* Retained from styles.css */
+    top: 1rem; /* Retained from styles.css */
+    right: 0.5rem; /* Retained from styles.css */
+    color: var(--text-muted);
+    font-size: 1.5rem; /* Retained from styles.css */
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.close-button:hover {
+    color: var(--text-primary);
+    background: rgba(239, 68, 68, 0.1);
+    transform: scale(1.1);
+}
+
+.modal-content h2 {
+    margin: 0 0 1rem; /* Retained from styles.css */
+    text-align: center; /* Retained from styles.css */
+    font-size: 1.5rem; /* Retained from styles.css */
+    font-weight: 700;
+    color: var(--primary-blue);
+    position: relative;
+}
+
+.modal-content h2::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: var(--accent-gradient);
+    border-radius: 2px;
+}
+
+/* Search Form in Modal */
+#searchForm {
+    display: flex; /* Retained from styles.css */
+    flex-direction: column; /* Retained from styles.css */
+    gap: 1rem; /* Retained from styles.css */
+    align-items: center; /* Retained from styles.css */
+}
+
+.form-row {
+    display: flex; /* Retained from styles.css */
+    gap: 1rem; /* Retained from styles.css */
+    flex-wrap: wrap; /* Retained from styles.css */
+    justify-content: center; /* Retained from styles.css */
+    width: 100%; /* Retained from styles.css */
+}
+
+.input-field {
+    display: flex; /* Retained from styles.css */
+    flex-direction: column; /* Retained from styles.css */
+    min-width: 180px; /* Retained from styles.css */
+    max-width: 220px; /* Retained from styles.css */
+    flex: 1 1 180px; /* Retained from styles.css */
+}
+
+#searchForm label {
+    margin-bottom: 0.5rem; /* Retained from styles.css */
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+#searchForm input {
+    padding: 0.6rem; /* Retained from styles.css */
+    border: 2px solid var(--border-medium);
+    border-radius: var(--border-radius-small);
+    font-size: 0.9rem; /* Retained from styles.css */
+    width: 100%; /* Retained from styles.css */
+    box-sizing: border-box; /* Retained from styles.css */
+    background: var(--background-light);
+    color: var(--text-primary);
+}
+
+#searchForm .search-button {
+    padding: 0.6rem 1.2rem; /* Retained from styles.css */
+    background: var(--success-gradient);
+    color: var(--text-white);
+    border: none;
+    border-radius: var(--border-radius-small);
+    cursor: pointer;
+    font-size: 0.9rem; /* Retained from styles.css */
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+#searchForm .search-button:hover {
+    background: var(--success-gradient-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+#searchForm button {
+    align-self: center; /* Adjusted from anchor-center */
+    padding: 0.6rem 1.2rem; /* Retained from styles.css */
+    background: var(--success-gradient);
+    color: var(--text-white);
+    border: none;
+    border-radius: var(--border-radius-small);
+    cursor: pointer;
+    font-size: 0.9rem; /* Retained from styles.css */
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+#searchForm button:hover {
+    background: var(--success-gradient-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* Search Message */
+#searchMessage {
+    margin-top: 0.75rem; /* Retained from styles.css */
+    text-align: center; /* Retained from styles.css */
+    font-weight: 600;
+    color: #ef4444;
+}
+
+/* Table Container in Modal */
+.table-container {
+    flex: 1; /* Retained from styles.css */
+    overflow-y: auto; /* Retained from styles.css */
+    margin-top: 1.5rem; /* Retained from styles.css */
+}
+
+#resultsTable {
+    background: transparent !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-soft) !important;
+    border: 1px solid var(--border-light) !important;
+    color: var(--text-primary) !important;
+    margin-bottom: 1.5rem !important; /* Retained from styles.css */
+    padding: 1.5rem !important; /* Retained from styles.css */
+}
+
+#resultsTable th,
+#resultsTable td {
+    background: transparent !important;
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--border-light) !important;
+}
+
+#resultsTable th {
+    font-weight: 600;
+    background: var(--background-light) !important;
+    color: var(--text-secondary) !important;
+}
+
+#resultsTable tr:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05)) !important;
+}
+
+/* Table Button Styles */
+#studiesTableBody button[data-study-id] {
+    background: var(--primary-gradient);
+    color: var(--text-white);
+    border: none;
+    padding: 0.5rem 1rem; /* Retained from styles.css */
+    border-radius: var(--border-radius-small);
+    font-size: 0.9rem; /* Retained from styles.css */
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+#studiesTableBody button[data-study-id]:hover {
+    background: var(--primary-gradient-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+#studiesTableBody button[data-study-id]:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Select Patient Button */
+.select-patient-btn {
+    background: var(--primary-gradient);
+    color: var(--text-white);
+    border: none;
+    padding: 0.5rem 1rem; /* Retained from styles.css */
+    border-radius: var(--border-radius-small);
+    font-size: 0.9rem; /* Retained from styles.css */
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.select-patient-btn:hover {
+    background: var(--primary-gradient-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+.select-patient-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 8px; /* Retained from styles.css */
+    height: 8px; /* Retained from styles.css */
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background-light);
+    border-radius: 4px; /* Retained from styles.css */
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--secondary-gradient);
+    border-radius: 4px; /* Retained from styles.css */
+    border: 2px solid var(--background-light);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-gradient-hover);
+}
+
+/* Checkbox Styles */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.custom-checkbox {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--border-medium);
+    border-radius: 6px;
+    background: var(--background-light);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.custom-checkbox:checked {
+    background: var(--primary-gradient);
+    border-color: var(--primary-blue);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.custom-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-white);
+    font-weight: bold;
+    font-size: 14px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Loading Animation */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+.loading {
+    animation: pulse 2s infinite;
+}
+
+/* Notification Styles */
+.notification {
+    border-radius: var(--border-radius-small);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.notification.success {
+    background: var(--success-gradient);
+}
+
+.notification.error {
+    background: var(--danger-gradient);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 1rem; /* Retained from styles.css */
+    }
+
+    .container {
+        padding: 1rem; /* Retained from styles.css */
+    }
+
+    .controls {
+        flex-direction: column; /* Retained from styles.css */
+        align-items: stretch; /* Retained from styles.css */
+    }
+
+    .controls button {
+        width: 100%; /* Retained from styles.css */
+    }
+
+    .search-bar {
+        flex-direction: column; /* Retained from styles.css */
+    }
+
+    .search-bar input,
+    .search-bar button {
+        width: 100%; /* Retained from styles.css */
+    }
+
+    .form-group,
+    .case-group,
+    .info-group {
+        flex-direction: column; /* Retained from styles.css */
+        align-items: flex-start; /* Retained from styles.css */
+        width: 100%; /* Retained from styles.css */
+    }
+
+    .form-group label,
+    .case-group label,
+    .info-group label {
+        width: 100%; /* Retained from styles.css */
+        margin-bottom: 0.25rem; /* Retained from styles.css */
+    }
+
+    .form-group input,
+    .form-group select,
+    .case-group input,
+    .case-group select,
+    .info-group input,
+    .info-group select {
+        width: 100%; /* Retained from styles.css */
+    }
+
+    .flex-container > section {
+        flex: 1 1 100%; /* Retained from styles.css */
+    }
+
+    .case-info-fio {
+        width: 100%; /* Retained from styles.css */
+    }
+
+    .modal-content {
+        width: 95%; /* Retained from styles.css */
+        max-height: 95vh; /* Retained from styles.css */
+        padding: 1rem; /* Retained from styles.css */
+    }
+
+    #searchForm button {
+        width: 100%; /* Retained from styles.css */
+    }
+
+    #resultsTable {
+        min-width: 100%; /* Retained from styles.css */
+    }
+
+    .select2-container {
+        width: 100% !important; /* Retained from styles.css */
+    }
+}
+
+.case-data-fio,
+.case-data-cun,
+.case-info-fio {
+    background: var(--background-card) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-soft) !important;
+    border: 1px solid var(--border-light) !important;
+    color: var(--text-primary) !important;
+    margin-bottom: 1.5rem !important; /* Retained from styles.css */
+    padding: 2rem !important;
+    position: relative;
+    backdrop-filter: var(--backdrop-blur);
+}
+
+.case-data-fio::before,
+.case-data-cun::before,
+.case-info-fio::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: var(--primary-gradient);
+    border-radius: 3px 0 0 3px;
+}
+
+#studiesOverviewModal .modal-content {
+    background: var(--background-card) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-strong) !important;
+    border: 1px solid var(--border-light) !important;
+    color: var(--text-primary) !important;
+    padding: 1.5rem !important; /* Retained from styles.css */
+    backdrop-filter: var(--backdrop-blur);
+}
+
+#studiesOverviewModal label {
+    color: var(--text-secondary) !important;
+}
+
+#studiesOverviewModal input,
+#studiesOverviewModal select {
+    background: var(--background-light) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid var(--border-medium) !important;
+}
+
+#studiesOverviewModal button {
+    background: var(--primary-gradient) !important;
+    color: var(--text-white) !important;
+    border-radius: var(--border-radius-small) !important;
+    border: none !important;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem; /* Retained from styles.css */
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3) !important;
+}
+
+#studiesOverviewModal button:hover {
+    background: var(--primary-gradient-hover) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4) !important;
+}
+
+#overviewTable {
+    background: transparent !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-soft) !important;
+    border: 1px solid var(--border-light) !important;
+    color: var(--text-primary) !important;
+}
+
+#overviewTable th,
+#overviewTable td {
+    background: transparent !important;
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--border-light) !important;
+}
+
+#overviewTable th {
+    font-weight: 600;
+    background: var(--background-light) !important;
+    color: var(--text-secondary) !important;
+}
+
+#overviewTable tr:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05)) !important;
+}
+
+.report-form {
+    background: var(--background-card) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-soft) !important;
+    border: 1px solid var(--border-light) !important;
+    color: var(--text-primary) !important;
+    padding: 1.5rem !important; /* Retained from styles.css */
+    margin-bottom: 1.5rem !important; /* Retained from styles.css */
+    backdrop-filter: var(--backdrop-blur);
+}
+
+.report-form label {
+    color: var(--text-secondary) !important;
+}
+
+.report-form input,
+.report-form select,
+.report-form textarea {
+    background: var(--background-light) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid var(--border-medium) !important;
+    border-radius: var(--border-radius-small) !important;
+}
+
+.report-form button {
+    background: var(--primary-gradient) !important;
+    color: var(--text-white) !important;
+    border-radius: var(--border-radius-small) !important;
+    border: none !important;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem; /* Retained from styles.css */
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3) !important;
+}
+
+.report-form button:hover {
+    background: var(--primary-gradient-hover) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4) !important;
+}
+
+#reportTable {
+    background: transparent !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-soft) !important;
+    border: 1px solid var(--border-light) !important;
+    color: var(--text-primary) !important;
+    width: 100%; /* Retained from styles.css */
+}
+
+#reportTable th,
+#reportTable td {
+    background: transparent !important;
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--border-light) !important;
+    text-align: center; /* Retained from styles.css */
+    padding: 1rem; /* Retained from styles.css */
+}
+
+#reportTable th {
+    font-weight: 600;
+    background: var(--background-light) !important;
+    color: var(--text-secondary) !important;
+}
+
+#reportTable tr:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(139, 92, 246, 0.05)) !important;
+}
+
+/* Tooltip Styles */
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-primary);
+    color: var(--text-white);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    white-space: normal;
+    word-wrap: break-word;
+    max-width: 300px;
+    min-width: 100px;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-medium);
+    pointer-events: none;
+    text-align: center;
+    line-height: 1.3;
+}
+
+.tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--text-primary);
+}
+
+.tooltip.show {
+    opacity: 1;
+    visibility: visible;
+    z-index: 99999;
+}
+
+/* Tooltip positioning variants */
+.tooltip.tooltip-top {
+    top: -40px;
+    bottom: auto;
+}
+
+.tooltip.tooltip-bottom {
+    top: auto;
+    bottom: -40px;
+}
+
+.tooltip.tooltip-bottom::after {
+    top: auto;
+    bottom: 100%;
+    border-top-color: transparent;
+    border-bottom-color: var(--text-primary);
+}
+
+.tooltip.tooltip-left {
+    left: auto;
+    right: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: 250px;
+}
+
+.tooltip.tooltip-left::after {
+    left: auto;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top-color: transparent;
+    border-left-color: var(--text-primary);
+}
+
+.tooltip.tooltip-right {
+    left: calc(100% + 10px);
+    right: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: 250px;
+}
+
+.tooltip.tooltip-right::after {
+    left: -6px;
+    right: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top-color: transparent;
+    border-right-color: var(--text-primary);
+}
+
+/* Responsive tooltip positioning */
+@media (max-width: 768px) {
+    .tooltip {
+        max-width: 250px;
+        font-size: 0.8rem;
+        padding: 6px 10px;
+    }
+    
+    .tooltip.tooltip-left,
+    .tooltip.tooltip-right {
+        max-width: 200px;
+    }
+}

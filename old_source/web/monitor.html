@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мониторинг системы</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        .stat-icon {
+            font-size: 3rem;
+            color: #667eea;
+            opacity: 0.3;
+        }
+        .users-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .user-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .user-item:last-child {
+            border-bottom: none;
+        }
+        .badge-custom {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .refresh-btn:hover {
+            background: #5568d3;
+            transform: scale(1.1);
+        }
+        .refresh-btn:active {
+            transform: scale(0.95);
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-online {
+            background: #28a745;
+            box-shadow: 0 0 10px #28a745;
+        }
+        .progress-custom {
+            height: 25px;
+            border-radius: 15px;
+        }
+        .timestamp {
+            color: #999;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="text-white text-center mb-4">
+                    <i class="fas fa-chart-line"></i> Мониторинг системы
+                </h1>
+                <p class="text-white text-center timestamp" id="lastUpdate">Обновление...</p>
+            </div>
+        </div>
+
+        <!-- Основные метрики -->
+        <div class="row">
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card text-center">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-value" id="activeUsers">-</div>
+                    <div class="stat-label">Активных пользователей</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card text-center">
+                    <div class="stat-icon"><i class="fas fa-server"></i></div>
+                    <div class="stat-value" id="requestsPerMin">-</div>
+                    <div class="stat-label">Запросов в минуту</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card text-center">
+                    <div class="stat-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <div class="stat-value" id="avgResponseTime">-</div>
+                    <div class="stat-label">Среднее время ответа (мс)</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stats-card text-center">
+                    <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="stat-value" id="errorRate">-</div>
+                    <div class="stat-label">Процент ошибок</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Системные метрики -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="stats-card">
+                    <h5><i class="fas fa-microchip"></i> Использование CPU</h5>
+                    <div id="cpuInfo">Загрузка...</div>
+                    <div class="progress progress-custom mt-2" id="cpuProgress">
+                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stats-card">
+                    <h5><i class="fas fa-memory"></i> Использование памяти</h5>
+                    <div id="memoryInfo">Загрузка...</div>
+                    <div class="progress progress-custom mt-2" id="memoryProgress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Пул БД -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="stats-card">
+                    <h5><i class="fas fa-database"></i> Пул соединений БД</h5>
+                    <div id="dbPoolInfo">Загрузка...</div>
+                    <div class="progress progress-custom mt-2" id="dbPoolProgress">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stats-card">
+                    <h5><i class="fas fa-info-circle"></i> Общая информация</h5>
+                    <div id="generalInfo">Загрузка...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Активные пользователи -->
+        <div class="row">
+            <div class="col-12">
+                <div class="stats-card">
+                    <h5><i class="fas fa-user-check"></i> Активные пользователи</h5>
+                    <div class="users-list" id="usersList">Загрузка...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadStats()" title="Обновить">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+
+    <script>
+        function formatNumber(num) {
+            return num !== null && num !== undefined ? num.toLocaleString('ru-RU') : '-';
+        }
+
+        function formatBytes(bytes) {
+            if (!bytes) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function updateProgressBar(elementId, percent, colorClass = '') {
+            const progressBar = document.querySelector(`#${elementId} .progress-bar`);
+            if (progressBar) {
+                progressBar.style.width = percent + '%';
+                progressBar.setAttribute('aria-valuenow', percent);
+                if (colorClass) {
+                    progressBar.className = `progress-bar ${colorClass}`;
+                }
+            }
+        }
+
+        function loadStats() {
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const stats = data.data;
+                        
+                        // Основные метрики
+                        document.getElementById('activeUsers').textContent = stats.users.active_count;
+                        document.getElementById('requestsPerMin').textContent = stats.requests.per_minute;
+                        document.getElementById('avgResponseTime').textContent = formatNumber(stats.requests.response_time_ms.avg);
+                        document.getElementById('errorRate').textContent = formatNumber(stats.requests.error_rate_percent) + '%';
+
+                        // Системные метрики
+                        if (stats.system.available !== false) {
+                            const cpuPercent = stats.system.system_cpu_percent || stats.system.process_cpu_percent || 0;
+                            const memoryPercent = stats.system.system_memory_percent || 0;
+                            
+                            document.getElementById('cpuInfo').innerHTML = `
+                                <strong>${formatNumber(cpuPercent)}%</strong> 
+                                ${stats.system.system_memory_total_gb ? `(Процесс: ${formatNumber(stats.system.process_cpu_percent || 0)}%)` : ''}
+                            `;
+                            updateProgressBar('cpuProgress', cpuPercent, cpuPercent > 80 ? 'bg-danger' : cpuPercent > 60 ? 'bg-warning' : 'bg-primary');
+                            
+                            document.getElementById('memoryInfo').innerHTML = `
+                                <strong>${formatNumber(memoryPercent)}%</strong> 
+                                (Процесс: ${formatNumber(stats.system.process_memory_mb || 0)} MB)
+                                ${stats.system.system_memory_total_gb ? `<br><small>Всего: ${formatNumber(stats.system.system_memory_total_gb)} GB, Доступно: ${formatNumber(stats.system.system_memory_available_gb)} GB</small>` : ''}
+                            `;
+                            updateProgressBar('memoryProgress', memoryPercent, memoryPercent > 80 ? 'bg-danger' : memoryPercent > 60 ? 'bg-warning' : 'bg-success');
+                        } else {
+                            document.getElementById('cpuInfo').textContent = 'Недоступно (psutil не установлен)';
+                            document.getElementById('memoryInfo').textContent = 'Недоступно (psutil не установлен)';
+                        }
+
+                        // Пул БД
+                        if (stats.database_pool && !stats.database_pool.error) {
+                            const poolUtil = stats.database_pool.utilization_percent || 0;
+                            document.getElementById('dbPoolInfo').innerHTML = `
+                                <strong>${stats.database_pool.active_connections}</strong> / ${stats.database_pool.max_connections} соединений
+                                (${formatNumber(poolUtil)}% использования)
+                            `;
+                            updateProgressBar('dbPoolProgress', poolUtil, poolUtil > 80 ? 'bg-danger' : poolUtil > 60 ? 'bg-warning' : 'bg-info');
+                        } else {
+                            document.getElementById('dbPoolInfo').textContent = 'Информация недоступна';
+                        }
+
+                        // Общая информация
+                        document.getElementById('generalInfo').innerHTML = `
+                            <div><strong>Всего запросов:</strong> ${formatNumber(stats.requests.total)}</div>
+                            <div><strong>Ошибок:</strong> ${formatNumber(stats.requests.errors)}</div>
+                            <div><strong>Время работы:</strong> ${formatNumber(stats.uptime_hours)} часов</div>
+                            <div><strong>Макс. время ответа:</strong> ${formatNumber(stats.requests.response_time_ms.max)} мс</div>
+                            <div><strong>Мин. время ответа:</strong> ${formatNumber(stats.requests.response_time_ms.min)} мс</div>
+                        `;
+
+                        // Список пользователей
+                        if (stats.users.active_users_list && stats.users.active_users_list.length > 0) {
+                            let usersHtml = '';
+                            stats.users.active_users_list.forEach(user => {
+                                const loginTime = user.login_time ? new Date(user.login_time).toLocaleString('ru-RU') : 'Неизвестно';
+                                usersHtml += `
+                                    <div class="user-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="status-indicator status-online"></span>
+                                                <strong>${user.fio || user.login}</strong>
+                                                <span class="badge badge-custom bg-secondary ms-2">${user.status || 'user'}</span>
+                                            </div>
+                                            <div class="text-end">
+                                                <small class="text-muted">${user.ip_address || 'N/A'}</small><br>
+                                                <small class="text-muted">${loginTime}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            document.getElementById('usersList').innerHTML = usersHtml;
+                        } else {
+                            document.getElementById('usersList').innerHTML = '<div class="text-center text-muted py-4">Нет активных пользователей</div>';
+                        }
+
+                        // Время обновления
+                        document.getElementById('lastUpdate').textContent = 
+                            'Последнее обновление: ' + new Date().toLocaleString('ru-RU');
+                    } else {
+                        console.error('Ошибка получения статистики:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка загрузки статистики:', error);
+                    document.getElementById('lastUpdate').textContent = 'Ошибка загрузки данных';
+                });
+        }
+
+        // Автообновление каждые 5 секунд
+        loadStats();
+        setInterval(loadStats, 5000);
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заполнение ЕЦП</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .split-layout { display: flex; gap: 0; align-items: stretch; position: relative; }
+        .split-left { width: 38%; min-width: 200px; max-width: 70%; overflow: auto; transition: opacity 0.3s ease; position: relative; }
+        .split-left.resizing { transition: none; }
+        .split-left.hidden { width: 0 !important; min-width: 0; overflow: hidden; opacity: 0; }
+        .resizer { width: 4px; background: var(--border-light); cursor: col-resize; user-select: none; flex-shrink: 0; position: relative; transition: opacity 0.3s ease; }
+        .resizer:hover { background: var(--primary-blue); }
+        .resizer::before { content: ''; position: absolute; top: 0; left: -2px; right: -2px; bottom: 0; }
+        .resizer.hidden { width: 0; opacity: 0; }
+        .split-right { flex: 1 1 auto; min-height: 80vh; }
+        .toggle-panel-btn { position: fixed; top: 80px; left: 10px; background: var(--primary-blue); color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 14px; z-index: 100; box-shadow: var(--shadow-soft); }
+        .toggle-panel-btn:hover { background: var(--primary-blue-dark); }
+        .toggle-panel-btn:focus { outline: 2px solid rgba(59,130,246,.6); outline-offset: 2px; }
+        .split-left.hidden + .resizer.hidden + .split-right { margin-left: 0; }
+        .card { background: var(--background-card); border: 1px solid var(--border-light); border-radius: var(--border-radius); box-shadow: var(--shadow-soft); padding: 1rem; }
+        .toolbar { display: flex; gap: .5rem; align-items: center; margin-bottom: .75rem; flex-wrap: wrap; }
+        .toolbar select, .toolbar input[type="date"] { padding: .4rem .5rem; }
+        .study-item { border: 1px solid var(--border-light); border-radius: .5rem; margin-bottom: .5rem; background: var(--background-card); }
+        .study-item summary { cursor: pointer; list-style: none; padding: .6rem .7rem; display: flex; align-items: center; justify-content: space-between; }
+        .study-item summary::-webkit-details-marker { display:none; }
+        .study-main { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+        .chip { background: rgba(99, 102, 241, .1); color: var(--text-primary); border: 1px solid var(--border-light); padding: .15rem .4rem; border-radius: .4rem; font-size: .85rem; }
+        .actions { display: flex; gap: .5rem; align-items: center; }
+        .btn-green { background: #10b981; color: #fff; border: none; border-radius: .4rem; padding: .4rem .6rem; cursor: pointer; }
+        .btn-green:hover { background: #0ea371; }
+        .btn-outline { background: transparent; border: 1px solid var(--border-light); color: var(--text-primary); border-radius: .4rem; padding: .35rem .55rem; cursor: pointer; }
+        .muted { color: var(--text-secondary); }
+        .site-container { display: flex; flex-direction: column; gap: .75rem; min-height: 80vh; }
+        .site-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+        .site-toolbar input[type="url"] { flex: 1 1 240px; min-width: 200px; padding: .45rem .6rem; border: 1px solid var(--border-light); border-radius: .5rem; background: var(--background-card); color: var(--text-primary); }
+        .site-toolbar button { padding: .45rem .9rem; border-radius: .5rem; border: none; cursor: pointer; font-weight: 600; transition: var(--transition, all .2s ease); }
+        .site-toolbar button.primary { background: var(--primary-blue); color: #fff; box-shadow: var(--shadow-soft); }
+        .site-toolbar button.primary:hover { background: var(--primary-blue-dark); }
+        .site-toolbar button.secondary { background: var(--background-card); border: 1px solid var(--border-light); color: var(--text-primary); }
+        .site-toolbar button.secondary:hover { background: var(--background-secondary, #f3f4f6); }
+        .site-toolbar button:disabled { opacity: .6; cursor: not-allowed; box-shadow: none; }
+        .site-status { font-size: .85rem; color: var(--text-secondary); display: flex; gap: .35rem; align-items: center; }
+        .site-status strong { color: var(--text-primary); font-weight: 600; word-break: break-all; }
+        .site-frame-wrapper { flex: 1 1 auto; min-height: 60vh; }
+        .site-frame { width: 100%; height: 100%; min-height: 60vh; border: 1px solid var(--border-light); border-radius: var(--border-radius); background: #fff; }
+        header { display:flex; align-items:center; justify-content: center; margin-bottom: 1rem; position: relative; }
+        header .back { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: .4rem; background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; border: 1px solid rgba(37,99,235,.5); border-radius: 9999px; padding: .4rem .75rem; box-shadow: var(--shadow-soft); text-decoration: none; font-weight: 600; }
+        header .back::before { content: '←'; font-size: 1rem; line-height: 1; }
+        header .back:hover { filter: brightness(1.05); }
+        header .back:active { transform: translateY(-50%) scale(0.98); }
+        header .back:focus { outline: 2px solid rgba(59,130,246,.6); outline-offset: 2px; }
+    </style>
+    <script src="js/auth.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Заполнение ЕЦП</h1>
+            <a class="back" href="home.html">Назад</a>
+        </header>
+        <div class="split-layout">
+            <button class="toggle-panel-btn" id="togglePanelBtn" title="Скрыть/Показать панель">◄</button>
+            <section class="split-left card" id="leftPanel">
+                <div class="toolbar">
+                    <label for="roleSelect" class="muted">Роль:</label>
+                    <select id="roleSelect">
+                        <option value="lab">Лаборант</option>
+                        <option value="doctor">Врач</option>
+                    </select>
+                    <label for="physicianSelect" class="muted">Сотрудник:</label>
+                    <select id="physicianSelect"></select>
+                    <label class="muted">Период:</label>
+                    <select id="periodSelect">
+                        <option value="today">Сегодня</option>
+                        <option value="week">За неделю</option>
+                        <option value="month" selected>За месяц</option>
+                        <option value="custom">Произвольный</option>
+                    </select>
+                    <span id="customPeriodControls" style="display:none;">
+                        <input type="date" id="dateFrom">
+                        <span class="muted">–</span>
+                        <input type="date" id="dateTo">
+                    </span>
+                </div>
+                <div id="studiesList"></div>
+            </section>
+            <div class="resizer" id="resizer"></div>
+            <section class="split-right">
+                <div class="card site-container">
+                    <div class="site-toolbar">
+                        <label class="muted" for="pinnedSiteInput">Веб-адрес:</label>
+                        <input type="url" id="pinnedSiteInput" placeholder="https://example.com">
+                        <button class="primary" id="loadPinnedSiteBtn">Закрепить</button>
+                        <button class="secondary" id="openPinnedSiteBtn" disabled>Открыть в новой вкладке</button>
+                        <button class="secondary" id="clearPinnedSiteBtn" disabled>Очистить</button>
+                    </div>
+                    <div class="site-status">Текущий сайт: <strong id="pinnedSiteStatus">Сайт не выбран</strong></div>
+                    <div class="site-frame-wrapper">
+                        <iframe id="pinnedSiteFrame" class="site-frame" src="about:blank" referrerpolicy="no-referrer"></iframe>
+                    </div>
+                    <div id="iframeNotice" class="muted" style="display:none;">Не удалось отобразить сайт. Попробуйте открыть его в новой вкладке или отключите блокировщики: <a id="iframeNoticeLink" href="#" target="_blank" rel="noopener">Открыть</a></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+<script>
+(function() {
+    let physicians = [];
+    let physicianMap = new Map();
+    let currentUser = null;
+
+    function formatDateISO(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth()+1).padStart(2,'0');
+        const day = String(d.getDate()).padStart(2,'0');
+        return `${y}-${m}-${day}`;
+    }
+
+    function guessPhysicianIdByFio(fio) {
+        if (!fio || physicians.length === 0) return null;
+        const fioNorm = fio.trim().toLowerCase();
+        let found = physicians.find(p => (p.full_name||'').trim().toLowerCase() === fioNorm);
+        if (found) return found.id;
+        found = physicians.find(p => (p.full_name||'').trim().toLowerCase().includes(fioNorm));
+        return found ? found.id : null;
+    }
+
+    function createStudyItem(study) {
+        const details = document.createElement('details');
+        details.className = 'study-item';
+
+        const doctorName = physicianMap.get(parseInt(study.doctor_id)) || physicianMap.get(study.doctor_id) || '';
+        const labName = physicianMap.get(parseInt(study.lab_technician_id)) || physicianMap.get(study.lab_technician_id) || '';
+        const barcode = study.barcode || '';
+        const date = study.study_date || '';
+
+        const summary = document.createElement('summary');
+        const main = document.createElement('div');
+        main.className = 'study-main';
+        main.innerHTML = `
+            <span class="chip">ID: ${study.id || ''}</span>
+            <span class="chip">Дата: ${date}</span>
+            <span class="chip">Штрих-код: ${barcode}</span>
+            <span class="chip">Врач: ${doctorName || '—'}</span>
+            <span class="chip">Лаборант: ${labName || '—'}</span>
+        `;
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        const writeBtn = document.createElement('button');
+        writeBtn.className = 'btn-green';
+        writeBtn.textContent = 'Записать';
+        writeBtn.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            const text = [
+                `ID: ${study.id || ''}`,
+                `Дата: ${date}`,
+                `Штрих-код: ${barcode}`,
+                `Врач: ${doctorName || ''}`,
+                `Лаборант: ${labName || ''}`
+            ].join('\n');
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    writeBtn.textContent = 'Скопировано';
+                    setTimeout(() => writeBtn.textContent = 'Записать', 1200);
+                    document.getElementById('ecpFrame')?.focus();
+                }).catch(() => window.open('https://ecp45.is-mis.ru/?c=portal&m=udp','_blank'));
+            } else {
+                window.open('https://ecp45.is-mis.ru/?c=portal&m=udp','_blank');
+            }
+        });
+        actions.appendChild(writeBtn);
+        summary.appendChild(main);
+        summary.appendChild(actions);
+        details.appendChild(summary);
+
+        const div = document.createElement('div');
+        div.style.padding = '.6rem .8rem 1rem';
+        div.innerHTML = `
+            <div class="muted">Материал: ${study.material_id || '—'}</div>
+            <div class="muted">Тип исследования: ${study.study_type_id || '—'}</div>
+            <div class="muted">Услуга: ${study.service_id || '—'}</div>
+            <div class="muted">Жидкостная: ${study.is_fluid ? 'Да' : 'Нет'}</div>
+            <div class="muted">Передано врачу стекл: ${study.transferred_to_doctor || '—'}</div>
+            <div class="muted">Заключение: ${study.bethesda_term_id || '—'}</div>
+            <div class="muted">Комментарий: ${study.comment || '—'}</div>
+        `;
+        details.appendChild(div);
+        return details;
+    }
+
+    function renderStudies(studies) {
+        const list = document.getElementById('studiesList');
+        list.innerHTML = '';
+        if (!studies || studies.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'muted';
+            empty.textContent = 'Нет исследований по выбранным условиям';
+            list.appendChild(empty);
+            return;
+        }
+        studies.forEach(study => list.appendChild(createStudyItem(study)));
+    }
+
+    function applyFiltersAndRender(allStudies) {
+        const role = document.getElementById('roleSelect').value;
+        const physicianId = document.getElementById('physicianSelect').value;
+        let filtered = allStudies.slice();
+        if (physicianId) {
+            if (role === 'lab') {
+                filtered = filtered.filter(s => String(s.lab_technician_id || '') === String(physicianId));
+            } else {
+                filtered = filtered.filter(s => String(s.doctor_id || '') === String(physicianId));
+            }
+        }
+        renderStudies(filtered);
+    }
+
+    async function loadPage() {
+        let allStudies = [];
+        try {
+            const userRes = await checkAuth();
+            if (userRes && userRes.status === 'success') {
+                currentUser = userRes.user;
+            }
+        } catch (e) { /* редирект выполнится в checkAuth */ }
+
+        try {
+            const physRes = await fetch('/api/get_physician_data').then(r => r.json());
+            physicians = physRes.status === 'success' ? physRes.data : [];
+            physicianMap = new Map(physicians.map(p => [p.id, p.full_name]));
+            const select = document.getElementById('physicianSelect');
+            select.innerHTML = '';
+            const optEmpty = document.createElement('option');
+            optEmpty.value = '';
+            optEmpty.textContent = '— не выбрано —';
+            select.appendChild(optEmpty);
+            physicians.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.textContent = p.full_name;
+                select.appendChild(opt);
+            });
+            if (currentUser && currentUser.fio) {
+                const guessed = guessPhysicianIdByFio(currentUser.fio);
+                if (guessed) {
+                    select.value = String(guessed);
+                }
+            }
+        } catch (e) {
+            console.error('Ошибка загрузки сотрудников:', e);
+        }
+
+        try {
+            const now = new Date();
+            const periodSelect = document.getElementById('periodSelect');
+            const customControls = document.getElementById('customPeriodControls');
+
+            function computeRangeByPeriod(value) {
+                const today = new Date();
+                const end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                let start = new Date(end);
+                if (value === 'today') {
+                    // start = end
+                } else if (value === 'week') {
+                    start = new Date(end.getTime() - 6*24*60*60*1000);
+                } else if (value === 'month') {
+                    start = new Date(end);
+                    start.setMonth(start.getMonth() - 1);
+                    start.setDate(start.getDate() + 1);
+                } else { // custom
+                    start = new Date(end.getTime() - 29*24*60*60*1000);
+                }
+                return { start, end };
+            }
+
+            function toggleCustomControls() {
+                if (periodSelect.value === 'custom') {
+                    customControls.style.display = '';
+                } else {
+                    customControls.style.display = 'none';
+                }
+            }
+
+            // init
+            toggleCustomControls();
+            const initRange = computeRangeByPeriod(periodSelect.value);
+            const initFrom = formatDateISO(initRange.start);
+            const initTo = formatDateISO(initRange.end);
+            const dfInput = document.getElementById('dateFrom');
+            const dtInput = document.getElementById('dateTo');
+            if (dfInput && dtInput) {
+                dfInput.value = initFrom;
+                dtInput.value = initTo;
+            }
+
+            async function fetchByRange(fromStr, toStr, periodValue) {
+                const url = new URL('/api/get_all_studies', window.location.origin);
+                if (periodValue === 'today') {
+                    url.searchParams.set('date_filter', 'today');
+                } else if (periodValue === 'month') {
+                    url.searchParams.set('date_filter', 'month');
+                } else {
+                    url.searchParams.set('date_filter', 'custom');
+                    if (fromStr) url.searchParams.set('date_from', fromStr);
+                    if (toStr) url.searchParams.set('date_to', toStr);
+                }
+                const resp = await fetch(url.toString(), { credentials: 'include' }).then(r => r.json());
+                if (resp.status === 'success') {
+                    allStudies = resp.data || [];
+                }
+            }
+
+            await fetchByRange(initFrom, initTo, periodSelect.value);
+
+            periodSelect.addEventListener('change', async () => {
+                toggleCustomControls();
+                if (periodSelect.value !== 'custom') {
+                    const r = computeRangeByPeriod(periodSelect.value);
+                    const fromStr = formatDateISO(r.start);
+                    const toStr = formatDateISO(r.end);
+                    if (dfInput && dtInput) { dfInput.value = fromStr; dtInput.value = toStr; }
+                    await fetchByRange(fromStr, toStr, periodSelect.value);
+                    applyFiltersAndRender(allStudies);
+                }
+            });
+
+            async function fetchAndRenderCurrent() {
+                let fromStr; let toStr;
+                if (periodSelect.value === 'custom') {
+                    const df = document.getElementById('dateFrom').value;
+                    const dt = document.getElementById('dateTo').value;
+                    if (!df || !dt) { return; }
+                    const fromDate = new Date(df);
+                    const toDate = new Date(dt);
+                    if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) { return; }
+                    if (fromDate > toDate) { return; }
+                    fromStr = df; toStr = dt;
+                } else {
+                    const r = computeRangeByPeriod(periodSelect.value);
+                    fromStr = formatDateISO(r.start);
+                    toStr = formatDateISO(r.end);
+                }
+                try {
+                    await fetchByRange(fromStr, toStr, periodSelect.value);
+                } catch (e) {
+                    console.error('Ошибка загрузки исследований:', e);
+                }
+                applyFiltersAndRender(allStudies);
+            }
+
+            const dfInputEl = document.getElementById('dateFrom');
+            const dtInputEl = document.getElementById('dateTo');
+            if (dfInputEl && dtInputEl) {
+                dfInputEl.addEventListener('change', fetchAndRenderCurrent);
+                dtInputEl.addEventListener('change', fetchAndRenderCurrent);
+            }
+        } catch (e) {
+            console.error('Ошибка загрузки исследований:', e);
+        }
+
+        document.getElementById('roleSelect').addEventListener('change', () => applyFiltersAndRender(allStudies));
+        document.getElementById('physicianSelect').addEventListener('change', () => applyFiltersAndRender(allStudies));
+
+        applyFiltersAndRender(allStudies);
+    }
+
+    window.addEventListener('DOMContentLoaded', loadPage);
+
+    // Инициализация ресайзера и кнопки скрытия
+    function initResizeAndToggle() {
+        const resizer = document.getElementById('resizer');
+        const leftPanel = document.getElementById('leftPanel');
+        const toggleBtn = document.getElementById('togglePanelBtn');
+        
+        if (!resizer || !leftPanel || !toggleBtn) return;
+        
+        let isResizing = false;
+        let isHidden = localStorage.getItem('ecpLeftPanelHidden') === 'true';
+
+        // Resize functionality
+        resizer.addEventListener('mousedown', (e) => {
+            if (leftPanel.classList.contains('hidden')) return;
+            isResizing = true;
+            leftPanel.classList.add('resizing');
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing || leftPanel.classList.contains('hidden')) return;
+            e.preventDefault();
+            const container = leftPanel.parentElement;
+            const containerRect = container.getBoundingClientRect();
+            
+            // Вычисляем новую ширину в процентах
+            let newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+            
+            // Применяем ограничения
+            if (newWidth < 15) {
+                newWidth = 15;
+            } else if (newWidth > 70) {
+                newWidth = 70;
+            }
+            
+            // Применяем новую ширину
+            leftPanel.style.width = newWidth + '%';
+            // Сохраняем в localStorage
+            localStorage.setItem('ecpLeftPanelWidth', newWidth + '%');
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                leftPanel.classList.remove('resizing');
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        });
+
+        // Загружаем сохраненную ширину из localStorage
+        const savedWidth = localStorage.getItem('ecpLeftPanelWidth');
+        if (savedWidth && !isHidden) {
+            leftPanel.style.width = savedWidth;
+        }
+
+        // Toggle panel functionality
+        function updateToggleState() {
+            if (isHidden) {
+                leftPanel.classList.add('hidden');
+                resizer.classList.add('hidden');
+                toggleBtn.textContent = '►';
+            } else {
+                leftPanel.classList.remove('hidden');
+                resizer.classList.remove('hidden');
+                toggleBtn.textContent = '◄';
+                // Восстанавливаем сохраненную ширину
+                const savedWidth = localStorage.getItem('ecpLeftPanelWidth');
+                if (savedWidth) {
+                    leftPanel.style.width = savedWidth;
+                }
+            }
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            isHidden = !isHidden;
+            localStorage.setItem('ecpLeftPanelHidden', isHidden.toString());
+            updateToggleState();
+        });
+
+        // Инициализация состояния при загрузке
+        updateToggleState();
+    }
+
+    function initPinnedSiteContainer() {
+        const iframe = document.getElementById('pinnedSiteFrame');
+        const input = document.getElementById('pinnedSiteInput');
+        const loadBtn = document.getElementById('loadPinnedSiteBtn');
+        const openBtn = document.getElementById('openPinnedSiteBtn');
+        const clearBtn = document.getElementById('clearPinnedSiteBtn');
+        const statusEl = document.getElementById('pinnedSiteStatus');
+        const notice = document.getElementById('iframeNotice');
+        const noticeLink = document.getElementById('iframeNoticeLink');
+
+        if (!iframe || !input || !loadBtn || !openBtn || !clearBtn || !statusEl || !notice || !noticeLink) {
+            return;
+        }
+
+        const STORAGE_KEY = 'ecpPinnedSiteUrl';
+        const DEFAULT_URL = 'https://ecp45.is-mis.ru/?c=portal&m=udp';
+        let currentUrl = '';
+
+        function normalizeUrl(raw) {
+            if (!raw) return '';
+            let trimmed = raw.trim();
+            if (!trimmed) return '';
+            if (!/^https?:\/\//i.test(trimmed)) {
+                trimmed = 'https://' + trimmed;
+            }
+            try {
+                return new URL(trimmed).href;
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function updateStatus(url, { invalid = false } = {}) {
+            currentUrl = url;
+            if (invalid) {
+                statusEl.textContent = 'Некорректный адрес. Пример: https://example.com';
+            } else if (url) {
+                statusEl.textContent = url;
+            } else {
+                statusEl.textContent = 'Сайт не выбран';
+            }
+            openBtn.disabled = !url || invalid;
+            clearBtn.disabled = !url && !invalid;
+            notice.style.display = 'none';
+            noticeLink.href = url || '#';
+        }
+
+        function setIframeSrc(raw, { save = true } = {}) {
+            const trimmed = (raw || '').trim();
+            if (!trimmed) {
+                iframe.src = 'about:blank';
+                if (save) {
+                    localStorage.removeItem(STORAGE_KEY);
+                }
+                updateStatus('');
+                return;
+            }
+            const normalized = normalizeUrl(trimmed);
+            if (!normalized) {
+                iframe.src = 'about:blank';
+                if (save) {
+                    localStorage.removeItem(STORAGE_KEY);
+                }
+                updateStatus('', { invalid: true });
+                return;
+            }
+            iframe.src = normalized;
+            if (save) {
+                localStorage.setItem(STORAGE_KEY, normalized);
+            }
+            updateStatus(normalized);
+        }
+
+        iframe.addEventListener('load', () => {
+            notice.style.display = 'none';
+        });
+
+        iframe.addEventListener('error', () => {
+            if (currentUrl) {
+                notice.style.display = '';
+            }
+        });
+
+        loadBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            setIframeSrc(input.value);
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                setIframeSrc(input.value);
+            }
+        });
+
+        openBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (currentUrl) {
+                window.open(currentUrl, '_blank', 'noopener');
+            }
+        });
+
+        clearBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            input.value = '';
+            setIframeSrc('', { save: true });
+        });
+
+        const savedUrl = localStorage.getItem(STORAGE_KEY);
+        const initialUrl = savedUrl || DEFAULT_URL;
+        if (initialUrl) {
+            input.value = initialUrl;
+            setIframeSrc(initialUrl, { save: !savedUrl });
+        } else {
+            updateStatus('');
+        }
+    }
+
+    function initPageEnhancements() {
+        initResizeAndToggle();
+        initPinnedSiteContainer();
+    }
+
+    // Инициализация после загрузки DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPageEnhancements);
+    } else {
+        initPageEnhancements();
+    }
+})();
+</script>
+</body>
+</html> 
