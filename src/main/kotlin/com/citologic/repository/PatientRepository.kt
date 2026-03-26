@@ -82,7 +82,7 @@ class PatientRepository {
 
     fun findAllDepartments(): List<String> = transaction {
         Otdel.selectAll()
-            .map { row -> row[Otdel.name] ?: "" }
+            .map { row -> row[Otdel.name].orEmpty() }
             .filter { it.isNotEmpty() }
             .distinct()
     }

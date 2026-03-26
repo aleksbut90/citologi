@@ -147,7 +147,7 @@ class UserRepository {
 
     fun findAllDoctors(): List<String> = transaction {
         UsersTable.selectAll()
-            .map { row -> row[UsersTable.fioName] ?: row[UsersTable.login] }
+            .map { row -> (row[UsersTable.fioName] ?: row[UsersTable.login]).orEmpty() }
             .filter { it.isNotEmpty() }
             .distinct()
     }
