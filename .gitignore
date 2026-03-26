@@ -1,59 +1,10 @@
-```
-# Compiled and build artifacts
 *.class
 *.jar
 *.war
 *.ear
-*.o
-*.obj
-*.so
-*.dll
-*.exe
-build/
+*.kotlin_metadata
+*.kotlin_built
 target/
-out/
-
-# Dependencies
 .gradle/
-node_modules/
-lib/
-libs/
-
-# Logs and temp files
-*.log
-*.tmp
-*.swp
-*.swo
-
-# Environment
-.env
-.env.local
-.env.*
-
-# Editors
-.vscode/
-.idea/
-*.iml
-*.ipr
-*.iws
-
-# System files
-.DS_Store
-Thumbs.db
-
-# Coverage reports
-coverage/
-htmlcov/
-.coverage
-
-# Python specific (if applicable)
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-.Python
-*.egg-info/
-dist/
-```
+build/
+!src/main/kotlin/com/citologic/ui/HomeView.kt

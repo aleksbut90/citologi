@@ -175,7 +175,7 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
         val controlsLayout = HorizontalLayout().apply {
             setWidthFull()
             justifyContentMode = FlexComponent.JustifyContentMode.START
-            spacing = true
+            isSpacing = true
             addClassName("controls")
             
             createNewStudyButton.addClickListener { createNewStudy() }
@@ -317,7 +317,7 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
                 addFormItem(commentComboBox, "Комментарий")
                 
                 val buttonsLayout = HorizontalLayout(saveButton, createCopyButton).apply {
-                    spacing = true
+                    isSpacing = true
                     setPadding(false)
                 }
                 add(buttonsLayout)
@@ -464,7 +464,7 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
     private fun setupOverviewFilters(): HorizontalLayout {
         return HorizontalLayout().apply {
             setWidthFull()
-            spacing = true
+            isSpacing = true
             
             val dateFrom = DatePicker("С даты")
             val dateTo = DatePicker("По дату")
