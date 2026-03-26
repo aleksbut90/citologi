@@ -18,6 +18,9 @@ class SecurityConfig(
 ) : VaadinWebSecurity() {
 
     override fun configure(http: HttpSecurity) {
+        // Сначала вызываем родительский configure для настройки Vaadin
+        super.configure(http)
+        
         http
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
