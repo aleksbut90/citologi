@@ -4,6 +4,7 @@ import com.vaadin.flow.component.html.Div
 import com.vaadin.flow.component.progressbar.ProgressBar
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.component.html.Span
+import com.vaadin.flow.component.orderedlayout.FlexComponent
 
 /**
  * Кастомный компонент прогресс-бара с текстовым сообщением
@@ -20,8 +21,8 @@ class CustomProgressBar : VerticalLayout() {
     }
     
     init {
-        setAlignItems(Alignment.CENTER)
-        setJustifyContentMode(JustifyContentMode.CENTER)
+        setAlignItems(FlexComponent.Alignment.CENTER)
+        setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER)
         setPadding(true)
         setSpacing(true)
         
