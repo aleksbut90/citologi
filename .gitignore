@@ -1,1 +1,23 @@
-Nothing should be ignored in this case. The changes only involve source code files (.java and .kt extensions) and do not include any build artifacts, dependencies, or temporary files that would warrant adding to .gitignore.
+# Compiled and build artifacts
+*.class
+*.o
+*.obj
+*.out
+
+# Dependencies
+.gradle/
+target/
+
+# Editors
+.idea/
+.vscode/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+*.env.*
