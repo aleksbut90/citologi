@@ -17,8 +17,7 @@ class SecurityConfig(
     private val customAuthenticationProvider: CustomAuthenticationProvider
 ) : VaadinWebSecurity() {
 
-    @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    override fun configure(http: HttpSecurity) {
         http
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
@@ -41,8 +40,6 @@ class SecurityConfig(
                 logout.invalidateHttpSession(true)
                 logout.deleteCookies("JSESSIONID")
             }
-
-        return super.securityFilterChain(http).build()
     }
 
     @Bean
