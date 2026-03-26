@@ -44,6 +44,8 @@ class CustomProgressBar : VerticalLayout() {
     }
     
     fun updateMessage(message: String) {
-        statusLabel.text = message
+        if (statusLabel.text != message) {
+            statusLabel.text = message
+        }
     }
 }

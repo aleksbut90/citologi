@@ -27,12 +27,7 @@ class DatabaseConfig(
             url = connectionUrl, 
             driver = driverClass, 
             user = dbUser, 
-            password = dbPassword,
-            setupConnection = { connection ->
-                // Дополнительные настройки соединения
-                connection.networkTimeout = java.util.concurrent.Executors.newSingleThreadExecutor()
-                connection.holdability = java.sql.Connection.HOLD_CURSORS_OVER_COMMIT
-            }
+            password = dbPassword
         )
     }
 }
