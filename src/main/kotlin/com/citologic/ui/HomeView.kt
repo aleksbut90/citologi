@@ -494,47 +494,65 @@ class HomeView : VerticalLayout() {
         // Показываем прогресс-бар сразу при начале загрузки
         if (!isAttached) return
         
-        progressBar.show("Загрузка справочников...")
+        UI.getCurrent()?.access {
+            progressBar.show("Загрузка справочников...")
+        }
         
         ioScope.launch {
             try {
                 // Загрузка справочников
                 val doctors = userRepository.findAllDoctors()
                 
-                if (isAttached) progressBar.updateMessage("Загрузка организаций...")
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Загрузка организаций...")
+                    }
+                }
                 val organizations = patientRepository.findAllOrganizations()
                 
-                if (isAttached) progressBar.updateMessage("Загрузка отделений...")
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Загрузка отделений...")
+                    }
+                }
                 val departments = patientRepository.findAllDepartments()
                 
                 // Обновляем UI в правильном порядке
                 uiScope.launch {
                     if (!isAttached) {
-                        progressBar.hide()
+                        UI.getCurrent()?.access {
+                            progressBar.hide()
+                        }
                         return@launch
                     }
                     
-                    doctorComboBox.setItems(doctors)
-                    referringDoctorComboBox.setItems(doctors)
-                    medicalOrganizationComboBox.setItems(organizations)
-                    departmentComboBox.setItems(departments)
-                    
-                    progressBar.updateMessage("Загрузка исследований...")
-                    loadStudies()
-                    progressBar.hide()
+                    UI.getCurrent()?.access {
+                        doctorComboBox.setItems(doctors)
+                        referringDoctorComboBox.setItems(doctors)
+                        medicalOrganizationComboBox.setItems(organizations)
+                        departmentComboBox.setItems(departments)
+                        
+                        progressBar.updateMessage("Загрузка исследований...")
+                        loadStudies()
+                        progressBar.hide()
+                    }
                 }
             } catch (e: CancellationException) {
                 // Корутина отменена, скрываем прогресс-бар
                 uiScope.launch {
-                    progressBar.hide()
+                    UI.getCurrent()?.access {
+                        progressBar.hide()
+                    }
                 }
             } catch (e: Exception) {
                 // При ошибке скрываем прогресс-бар и показываем уведомление
                 uiScope.launch {
-                    progressBar.hide()
-                    if (isAttached) {
-                        Notification.show("Ошибка загрузки данных: ${e.message}", 5000, Notification.Position.BOTTOM_CENTER)
-                            .addThemeVariants(NotificationVariant.LUMO_ERROR)
+                    UI.getCurrent()?.access {
+                        progressBar.hide()
+                        if (isAttached) {
+                            Notification.show("Ошибка загрузки данных: ${e.message}", 5000, Notification.Position.BOTTOM_CENTER)
+                                .addThemeVariants(NotificationVariant.LUMO_ERROR)
+                        }
                     }
                 }
             }
@@ -548,26 +566,30 @@ class HomeView : VerticalLayout() {
                 
                 uiScope.launch {
                     if (isAttached) {
-                        val rows = studies.map { study ->
-                            StudyRow(
-                                id = study.id,
-                                studyDate = study.studyDate?.toString() ?: "",
-                                labTechnician = study.labTechnician ?: "",
-                                isFluid = study.isFluid ?: false,
-                                barcode = study.barcode
-                            )
+                        UI.getCurrent()?.access {
+                            val rows = studies.map { study ->
+                                StudyRow(
+                                    id = study.id,
+                                    studyDate = study.studyDate?.toString() ?: "",
+                                    labTechnician = study.labTechnician ?: "",
+                                    isFluid = study.isFluid ?: false,
+                                    barcode = study.barcode
+                                )
+                            }
+                            studiesGrid.setItems(rows)
+                            progressBar.hide()
                         }
-                        studiesGrid.setItems(rows)
-                        progressBar.hide()
                     }
                 }
             } catch (e: CancellationException) {
                 // Корутина отменена, ничего не делаем
             } catch (e: Exception) {
                 uiScope.launch {
-                    if (isAttached) {
-                        progressBar.hide()
-                        Notification.show("Ошибка загрузки исследований: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                    UI.getCurrent()?.access {
+                        if (isAttached) {
+                            progressBar.hide()
+                            Notification.show("Ошибка загрузки исследований: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                        }
                     }
                 }
             }
@@ -698,14 +720,6 @@ class HomeView : VerticalLayout() {
                     }
                 }
             }
-        }
-    }
-
-    override fun beforeEnter(event: BeforeEnterEvent) {
-        val session = VaadinSession.getCurrent()
-        val user = session.getAttribute("user")
-        if (user == null) {
-            event.forwardTo("login")
         }
     }
 }
