@@ -18,9 +18,7 @@ class SecurityConfig(
 ) : VaadinWebSecurity() {
 
     override fun configure(http: HttpSecurity) {
-        // Сначала вызываем родительский configure для настройки Vaadin
-        super.configure(http)
-        
+        // Сначала настраиваем публичные маршруты ДО вызова super.configure()
         http
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
@@ -31,7 +29,7 @@ class SecurityConfig(
                     "/favicon.ico",
                     "/offline-stub.html"
                 ).permitAll()
-
+                
                 // Все остальные запросы требуют аутентификации
                 auth.anyRequest().authenticated()
             }
@@ -43,6 +41,9 @@ class SecurityConfig(
                 logout.invalidateHttpSession(true)
                 logout.deleteCookies("JSESSIONID")
             }
+        
+        // Вызываем super.configure() ПОСЛЕ настройки authorizeHttpRequests
+        super.configure(http)
     }
 
     @Bean
