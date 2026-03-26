@@ -419,12 +419,18 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
                             val patients = patientRepository.findByFio(searchField.value)
                             
                             uiScope.launch {
-                                resultsList.setItems(patients.map { "${it.lastName} ${it.firstName} ${it.middleName}" })
+                                if (isAttached) {
+                                    resultsList.setItems(patients.map { "${it.lastName} ${it.firstName} ${it.middleName}" })
+                                }
                                 progressBar.isVisible = false
                             }
+                        } catch (e: CancellationException) {
+                            // Корутина отменена, ничего не делаем
                         } catch (e: Exception) {
                             uiScope.launch {
-                                Notification.show("Ошибка поиска: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                                if (isAttached) {
+                                    Notification.show("Ошибка поиска: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                                }
                                 progressBar.isVisible = false
                             }
                         }
@@ -487,18 +493,24 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
                 val departments = patientRepository.findAllDepartments()
                 
                 uiScope.launch {
-                    doctorComboBox.setItems(doctors)
-                    referringDoctorComboBox.setItems(doctors)
-                    medicalOrganizationComboBox.setItems(organizations)
-                    departmentComboBox.setItems(departments)
-                    
-                    loadStudies()
-                    progressBar.isVisible = false
+                    if (isAttached) {
+                        doctorComboBox.setItems(doctors)
+                        referringDoctorComboBox.setItems(doctors)
+                        medicalOrganizationComboBox.setItems(organizations)
+                        departmentComboBox.setItems(departments)
+                        
+                        loadStudies()
+                        progressBar.isVisible = false
+                    }
                 }
+            } catch (e: CancellationException) {
+                // Корутина отменена, ничего не делаем
             } catch (e: Exception) {
                 uiScope.launch {
-                    Notification.show("Ошибка загрузки данных: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
-                    progressBar.isVisible = false
+                    if (isAttached) {
+                        Notification.show("Ошибка загрузки данных: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                        progressBar.isVisible = false
+                    }
                 }
             }
         }
@@ -510,20 +522,28 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
                 val studies = studyRepository.findAll()
                 
                 uiScope.launch {
-                    val rows = studies.map { study ->
-                        StudyRow(
-                            id = study.id,
-                            studyDate = study.studyDate?.toString() ?: "",
-                            labTechnician = study.labTechnician ?: "",
-                            isFluid = study.isFluid ?: false,
-                            barcode = study.barcode
-                        )
+                    if (isAttached) {
+                        val rows = studies.map { study ->
+                            StudyRow(
+                                id = study.id,
+                                studyDate = study.studyDate?.toString() ?: "",
+                                labTechnician = study.labTechnician ?: "",
+                                isFluid = study.isFluid ?: false,
+                                barcode = study.barcode
+                            )
+                        }
+                        studiesGrid.setItems(rows)
+                        progressBar.isVisible = false
                     }
-                    studiesGrid.setItems(rows)
                 }
+            } catch (e: CancellationException) {
+                // Корутина отменена, ничего не делаем
             } catch (e: Exception) {
                 uiScope.launch {
-                    Notification.show("Ошибка загрузки исследований: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                    if (isAttached) {
+                        Notification.show("Ошибка загрузки исследований: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                        progressBar.isVisible = false
+                    }
                 }
             }
         }
@@ -603,14 +623,20 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
                 )
                 
                 uiScope.launch {
-                    Notification.show("Исследование сохранено", 2000, Notification.Position.BOTTOM_CENTER)
-                    progressBar.isVisible = false
-                    loadStudies()
+                    if (isAttached) {
+                        Notification.show("Исследование сохранено", 2000, Notification.Position.BOTTOM_CENTER)
+                        progressBar.isVisible = false
+                        loadStudies()
+                    }
                 }
+            } catch (e: CancellationException) {
+                // Корутина отменена, ничего не делаем
             } catch (e: Exception) {
                 uiScope.launch {
-                    Notification.show("Ошибка сохранения: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
-                    progressBar.isVisible = false
+                    if (isAttached) {
+                        Notification.show("Ошибка сохранения: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                        progressBar.isVisible = false
+                    }
                 }
             }
         }
@@ -631,14 +657,20 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
                 studyRepository.deleteById(row.id)
                 
                 uiScope.launch {
-                    Notification.show("Исследование удалено", 2000, Notification.Position.BOTTOM_CENTER)
-                    progressBar.isVisible = false
-                    loadStudies()
+                    if (isAttached) {
+                        Notification.show("Исследование удалено", 2000, Notification.Position.BOTTOM_CENTER)
+                        progressBar.isVisible = false
+                        loadStudies()
+                    }
                 }
+            } catch (e: CancellationException) {
+                // Корутина отменена, ничего не делаем
             } catch (e: Exception) {
                 uiScope.launch {
-                    Notification.show("Ошибка удаления: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
-                    progressBar.isVisible = false
+                    if (isAttached) {
+                        Notification.show("Ошибка удаления: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                        progressBar.isVisible = false
+                    }
                 }
             }
         }
