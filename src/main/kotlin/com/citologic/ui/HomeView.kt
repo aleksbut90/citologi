@@ -659,29 +659,58 @@ class HomeView : VerticalLayout() {
     private fun saveStudy() {
         ioScope.launch {
             try {
-                progressBar.isVisible = true
+                uiScope.launch {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Сохранение исследования...")
+                        progressBar.isVisible = true
+                    }
+                }
+                
+                val caseNumber = caseNumberField.value.trim()
+                val patientFio = "${patientLastNameField.value.trim()} ${patientFirstNameField.value.trim()} ${patientMiddleNameField.value.trim()}".trim()
+                val studyDate = studyDateField.value
+                val conclusion = conclusionTextArea.value.trim()
+                
+                log.info("Попытка сохранения исследования: caseNumber=$caseNumber, patientFio=$patientFio, studyDate=$studyDate")
+                
+                // Валидация обязательных полей
+                if (patientFio.isBlank()) {
+                    uiScope.launch {
+                        UI.getCurrent()?.access {
+                            Notification.show("ФИО пациента обязательно для заполнения", 3000, Notification.Position.BOTTOM_END)
+                                .addThemeVariants(NotificationVariant.LUMO_ERROR)
+                            progressBar.isVisible = false
+                        }
+                    }
+                    return@launch
+                }
                 
                 // Сохранение исследования
-                studyRepository.save(
-                    caseNumber = caseNumberField.value,
-                    patientFio = "${patientLastNameField.value} ${patientFirstNameField.value} ${patientMiddleNameField.value}",
-                    studyDate = studyDateField.value,
-                    conclusion = conclusionTextArea.value
+                val savedStudy = studyRepository.save(
+                    caseNumber = caseNumber.ifBlank { null },
+                    patientFio = patientFio.ifBlank { null },
+                    studyDate = studyDate,
+                    conclusion = conclusion.ifBlank { null }
                 )
                 
+                log.info("Исследование успешно сохранено с ID: ${savedStudy.id}")
+                
                 uiScope.launch {
-                    if (isAttached) {
-                        Notification.show("Исследование сохранено", 2000, Notification.Position.BOTTOM_CENTER)
+                    UI.getCurrent()?.access {
+                        Notification.show("Исследование сохранено (ID: ${savedStudy.id})", 2000, Notification.Position.BOTTOM_CENTER)
+                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS)
                         progressBar.isVisible = false
                         loadStudies()
                     }
                 }
             } catch (e: CancellationException) {
-                // Корутина отменена, ничего не делаем
+                log.warn("Корутина сохранения отменена")
             } catch (e: Exception) {
+                log.error("Ошибка при сохранении исследования", e)
                 uiScope.launch {
-                    if (isAttached) {
-                        Notification.show("Ошибка сохранения: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                    UI.getCurrent()?.access {
+                        Notification.show("Ошибка сохранения: ${e.message}", 5000, Notification.Position.BOTTOM_END)
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR)
                         progressBar.isVisible = false
                     }
                 }
