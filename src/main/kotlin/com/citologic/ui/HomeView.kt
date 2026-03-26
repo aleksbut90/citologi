@@ -27,28 +27,22 @@ import com.vaadin.flow.component.textfield.IntegerField
 import com.vaadin.flow.component.textfield.TextArea
 import com.vaadin.flow.component.textfield.TextField
 import com.vaadin.flow.data.renderer.ComponentRenderer
-import com.vaadin.flow.router.BeforeEnterEvent
-import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
 import com.vaadin.flow.server.VaadinSession
 import kotlinx.coroutines.*
-import com.vaadin.flow.spring.annotation.RouteScope
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.time.Period
 
 @Route("")
-@Component
-@RouteScope
-class HomeView(
-    @Autowired private val userRepository: UserRepository,
-    @Autowired private val patientRepository: PatientRepository,
-    @Autowired private val studyRepository: StudyRepository
-) : VerticalLayout(), BeforeEnterObserver {
+class HomeView : VerticalLayout(), BeforeEnterObserver {
 
     private val uiScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    
+    // Репозитории создаются лениво, чтобы избежать проблем с инициализацией
+    private lateinit var userRepository: UserRepository
+    private lateinit var patientRepository: PatientRepository
+    private lateinit var studyRepository: StudyRepository
 
     // Progress bar - кастомный компонент с сообщением
     private val progressBar = CustomProgressBar().apply {
@@ -146,7 +140,16 @@ class HomeView(
         setupStudiesTable()
         setupModals()
         
-        // Загружаем данные после инициализации UI
+        // Загружаем данные после инициализации UI, репозитории создаются в onAttach
+    }
+
+    override fun beforeEnter(event: BeforeEnterEvent) {
+        // Инициализируем репозитории при входе в view
+        userRepository = UserRepository()
+        patientRepository = PatientRepository()
+        studyRepository = StudyRepository()
+        
+        // Загружаем данные
         loadData()
     }
 
