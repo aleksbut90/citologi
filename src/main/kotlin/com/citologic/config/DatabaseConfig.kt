@@ -16,6 +16,23 @@ class DatabaseConfig(
 
     @PostConstruct
     fun init() {
-        Database.connect(url = dbUrl, driver = driverClass, user = dbUser, password = dbPassword)
+        // Добавляем таймауты для предотвращения зависания при проблемах с сетью
+        val connectionUrl = if (dbUrl.contains("?")) {
+            "$dbUrl&connectTimeout=10&socketTimeout=30"
+        } else {
+            "$dbUrl?connectTimeout=10&socketTimeout=30"
+        }
+        
+        Database.connect(
+            url = connectionUrl, 
+            driver = driverClass, 
+            user = dbUser, 
+            password = dbPassword,
+            setupConnection = { connection ->
+                // Дополнительные настройки соединения
+                connection.networkTimeout = java.util.concurrent.Executors.newSingleThreadExecutor()
+                connection.holdability = java.sql.Connection.HOLD_CURSORS_OVER_COMMIT
+            }
+        )
     }
 }

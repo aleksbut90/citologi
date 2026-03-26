@@ -17,6 +17,7 @@ import com.vaadin.flow.component.formlayout.FormLayout
 import com.vaadin.flow.component.grid.Grid
 import com.vaadin.flow.component.html.*
 import com.vaadin.flow.component.notification.Notification
+import com.vaadin.flow.component.notification.NotificationVariant
 import com.vaadin.flow.component.orderedlayout.FlexComponent
 import com.vaadin.flow.component.orderedlayout.FlexLayout
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
@@ -135,6 +136,7 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
         setSizeFull()
         addClassName("home-view")
         
+        // Прогресс-бар добавляем первым, чтобы он был виден сразу при загрузке
         add(progressBar)
         
         setupHeader()
@@ -145,6 +147,8 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
         setupResultsSection()
         setupStudiesTable()
         setupModals()
+        
+        // Загружаем данные после инициализации UI
         loadData()
     }
 
@@ -483,48 +487,50 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
     }
 
     private fun loadData() {
+        // Показываем прогресс-бар сразу при начале загрузки
+        if (!isAttached) return
+        
+        progressBar.show("Загрузка справочников...")
+        
         ioScope.launch {
             try {
-                uiScope.launch {
-                    progressBar.show("Загрузка справочников...")
-                }
-                
                 // Загрузка справочников
                 val doctors = userRepository.findAllDoctors()
                 
-                uiScope.launch {
-                    if (isAttached) {
-                        progressBar.updateMessage("Загрузка организаций...")
-                    }
-                }
+                if (isAttached) progressBar.updateMessage("Загрузка организаций...")
                 val organizations = patientRepository.findAllOrganizations()
                 
-                uiScope.launch {
-                    if (isAttached) {
-                        progressBar.updateMessage("Загрузка отделений...")
-                    }
-                }
+                if (isAttached) progressBar.updateMessage("Загрузка отделений...")
                 val departments = patientRepository.findAllDepartments()
                 
+                // Обновляем UI в правильном порядке
                 uiScope.launch {
-                    if (isAttached) {
-                        doctorComboBox.setItems(doctors)
-                        referringDoctorComboBox.setItems(doctors)
-                        medicalOrganizationComboBox.setItems(organizations)
-                        departmentComboBox.setItems(departments)
-                        
-                        progressBar.updateMessage("Загрузка исследований...")
-                        loadStudies()
+                    if (!isAttached) {
                         progressBar.hide()
+                        return@launch
                     }
+                    
+                    doctorComboBox.setItems(doctors)
+                    referringDoctorComboBox.setItems(doctors)
+                    medicalOrganizationComboBox.setItems(organizations)
+                    departmentComboBox.setItems(departments)
+                    
+                    progressBar.updateMessage("Загрузка исследований...")
+                    loadStudies()
+                    progressBar.hide()
                 }
             } catch (e: CancellationException) {
-                // Корутина отменена, ничего не делаем
-            } catch (e: Exception) {
+                // Корутина отменена, скрываем прогресс-бар
                 uiScope.launch {
+                    progressBar.hide()
+                }
+            } catch (e: Exception) {
+                // При ошибке скрываем прогресс-бар и показываем уведомление
+                uiScope.launch {
+                    progressBar.hide()
                     if (isAttached) {
-                        progressBar.hide()
-                        Notification.show("Ошибка загрузки данных: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                        Notification.show("Ошибка загрузки данных: ${e.message}", 5000, Notification.Position.BOTTOM_CENTER)
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR)
                     }
                 }
             }
