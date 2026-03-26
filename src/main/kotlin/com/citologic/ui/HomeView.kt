@@ -5,6 +5,7 @@ import com.citologic.repository.PatientRepository
 import com.citologic.repository.StudyRepository
 import com.citologic.repository.UserRepository
 import com.citologic.ui.components.Card
+import com.citologic.ui.components.CustomProgressBar
 import com.vaadin.flow.component.*
 import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.button.ButtonVariant
@@ -50,10 +51,9 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
     private val uiScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    // Progress bar
-    private val progressBar = ProgressBar().apply {
+    // Progress bar - кастомный компонент с сообщением
+    private val progressBar = CustomProgressBar().apply {
         isVisible = false
-        isIndeterminate = true
     }
 
     // Общие сведения
@@ -485,11 +485,25 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
     private fun loadData() {
         ioScope.launch {
             try {
-                progressBar.isVisible = true
+                uiScope.launch {
+                    progressBar.show("Загрузка справочников...")
+                }
                 
                 // Загрузка справочников
                 val doctors = userRepository.findAllDoctors()
+                
+                uiScope.launch {
+                    if (isAttached) {
+                        progressBar.updateMessage("Загрузка организаций...")
+                    }
+                }
                 val organizations = patientRepository.findAllOrganizations()
+                
+                uiScope.launch {
+                    if (isAttached) {
+                        progressBar.updateMessage("Загрузка отделений...")
+                    }
+                }
                 val departments = patientRepository.findAllDepartments()
                 
                 uiScope.launch {
@@ -499,8 +513,9 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
                         medicalOrganizationComboBox.setItems(organizations)
                         departmentComboBox.setItems(departments)
                         
+                        progressBar.updateMessage("Загрузка исследований...")
                         loadStudies()
-                        progressBar.isVisible = false
+                        progressBar.hide()
                     }
                 }
             } catch (e: CancellationException) {
@@ -508,8 +523,8 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
             } catch (e: Exception) {
                 uiScope.launch {
                     if (isAttached) {
+                        progressBar.hide()
                         Notification.show("Ошибка загрузки данных: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
-                        progressBar.isVisible = false
                     }
                 }
             }
@@ -533,7 +548,7 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
                             )
                         }
                         studiesGrid.setItems(rows)
-                        progressBar.isVisible = false
+                        progressBar.hide()
                     }
                 }
             } catch (e: CancellationException) {
@@ -541,8 +556,8 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
             } catch (e: Exception) {
                 uiScope.launch {
                     if (isAttached) {
+                        progressBar.hide()
                         Notification.show("Ошибка загрузки исследований: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
-                        progressBar.isVisible = false
                     }
                 }
             }

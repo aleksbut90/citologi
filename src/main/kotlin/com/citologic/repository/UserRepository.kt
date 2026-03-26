@@ -145,13 +145,19 @@ class UserRepository {
             }
     }
 
-    fun findAllDoctors(): List<String> = transaction {
-        UsersTable.selectAll()
-            .mapNotNull { row -> 
-                val fio = row[UsersTable.fioName]
-                val login = row[UsersTable.login]
-                fio?.trim()?.takeIf { it.isNotEmpty() } ?: login?.trim()?.takeIf { it.isNotEmpty() }
+    fun findAllDoctors(): List<String> {
+        return try {
+            transaction {
+                UsersTable.selectAll()
+                    .mapNotNull { row -> 
+                        val fio = row[UsersTable.fioName]
+                        val login = row[UsersTable.login]
+                        (fio?.trim() ?: login?.trim())?.takeIf { it.isNotEmpty() }
+                    }
+                    .distinct()
             }
-            .distinct()
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 }
