@@ -1,6 +1,8 @@
 package com.citologic.ui
 
 import com.citologic.model.*
+import com.citologic.repository.PatientRepository
+import com.citologic.repository.StudyRepository
 import com.citologic.repository.UserRepository
 import com.citologic.ui.components.Card
 import com.vaadin.flow.component.*
@@ -13,37 +15,46 @@ import com.vaadin.flow.component.dialog.Dialog
 import com.vaadin.flow.component.formlayout.FormLayout
 import com.vaadin.flow.component.grid.Grid
 import com.vaadin.flow.component.html.*
-import com.vaadin.flow.component.icon.VaadinIcon
 import com.vaadin.flow.component.notification.Notification
 import com.vaadin.flow.component.orderedlayout.FlexComponent
 import com.vaadin.flow.component.orderedlayout.FlexLayout
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
+import com.vaadin.flow.component.progressbar.ProgressBar
 import com.vaadin.flow.component.textfield.IntegerField
 import com.vaadin.flow.component.textfield.TextArea
 import com.vaadin.flow.component.textfield.TextField
-import com.vaadin.flow.data.binder.Binder
 import com.vaadin.flow.data.renderer.ComponentRenderer
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
 import com.vaadin.flow.server.VaadinSession
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.transaction
+import kotlinx.coroutines.*
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
-// Алиасы для совместимости
-typealias JustifyContentMode = FlexComponent.JustifyContentMode
-typealias Alignment = FlexComponent.Alignment
-typealias FlexWrap = FlexLayout.FlexWrap
+import java.time.Period
 
 @Route("")
 class HomeView : VerticalLayout(), BeforeEnterObserver {
 
     @Autowired
     private lateinit var userRepository: UserRepository
+
+    @Autowired
+    private lateinit var patientRepository: PatientRepository
+
+    @Autowired
+    private lateinit var studyRepository: StudyRepository
+
+    // Coroutine scopes
+    private val uiScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private val ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    // Progress bar
+    private val progressBar = ProgressBar().apply {
+        isVisible = false
+        isIndeterminate = true
+    }
 
     // Общие сведения
     private val caseNumberField = TextField("Номер стекла")
@@ -101,7 +112,6 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
     private val profilaktikaButton = Button("Профосмотр")
     private val reportButton = Button("Страница отчетов")
     private val logoutButton = Button("Выход")
-    private val findPatientButton = Button("Найти пациента")
     private val saveButton = Button("Сохранить")
     private val createCopyButton = Button("Создать копию") { isVisible = false }
 
@@ -124,6 +134,8 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
     init {
         setSizeFull()
         addClassName("home-view")
+        
+        add(progressBar)
         
         setupHeader()
         setupControls()
@@ -148,7 +160,6 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
             val userInfo = HorizontalLayout().apply {
                 val session = VaadinSession.getCurrent()
                 val userFIO = session.getAttribute("userFIO") as? String ?: "Сотрудник"
-                val userStatus = session.getAttribute("userStatus") as? String ?: "USER"
                 
                 add(Span("Сотрудник: $userFIO"))
                 addClassName("user-info")
@@ -216,7 +227,7 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
             
             val formLayout = FormLayout().apply {
                 setWidthFull()
-                responsiveSteps = FormLayout.ResponsiveStep("0", 2)
+                responsiveSteps = listOf(FormLayout.ResponsiveStep("0", 2))
                 
                 add(findPatientBtn)
                 addFormItem(patientLastNameField, "Фамилия")
@@ -255,7 +266,7 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
             
             val formLayout = FormLayout().apply {
                 setWidthFull()
-                responsiveSteps = FormLayout.ResponsiveStep("0", 2)
+                responsiveSteps = listOf(FormLayout.ResponsiveStep("0", 2))
                 
                 addFormItem(directionNumberField, "Номер направления")
                 addFormItem(medicalOrganizationComboBox, "Медицинская организация")
@@ -295,7 +306,7 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
             
             val formLayout = FormLayout().apply {
                 setWidthFull()
-                responsiveSteps = FormLayout.ResponsiveStep("0", 2)
+                responsiveSteps = listOf(FormLayout.ResponsiveStep("0", 2))
                 
                 addFormItem(studyDateField, "Дата исследования")
                 addFormItem(doctorComboBox, "Врач")
@@ -333,31 +344,18 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
             
             studiesGrid.apply {
                 setSizeFull()
-                addColumn(StudyRow::id).setHeader("ID исследования").setKey("id")
-                addColumn(StudyRow::studyDate).setHeader("Дата исследования").setKey("studyDate")
-                addColumn(StudyRow::labTechnician).setHeader("Лаборант").setKey("labTechnician")
-                addColumn(StudyRow::isFluid).setHeader("Жидкостная").setKey("isFluid")
-                    .setRenderer(ComponentRenderer { isFluid ->
-                        if (isFluid) Text("Да") else Text("Нет")
-                    })
-                addColumn(StudyRow::barcode).setHeader("Штрихкод").setKey("barcode")
+                addColumn { row -> row.id }.setHeader("ID исследования").setKey("id")
+                addColumn { row -> row.studyDate }.setHeader("Дата исследования").setKey("studyDate")
+                addColumn { row -> row.labTechnician }.setHeader("Лаборант").setKey("labTechnician")
+                addColumn { row -> if (row.isFluid) "Да" else "Нет" }.setHeader("Жидкостная").setKey("isFluid")
+                addColumn { row -> row.barcode ?: "-" }.setHeader("Штрихкод").setKey("barcode")
                 
                 // Колонка действий
-                addColumn(ComponentRenderer { row ->
-                    HorizontalLayout(
-                        Button("Просмотр", { viewStudyDetails(row) }).apply {
-                            addThemeVariants(ButtonVariant.LUMO_TERTIARY)
-                            setClassName("button-small")
-                        },
-                        Button("Редактировать", { editStudy(row) }).apply {
-                            addThemeVariants(ButtonVariant.LUMO_TERTIARY)
-                            setClassName("button-small")
-                        },
-                        Button("Удалить", { deleteStudy(row) }).apply {
-                            addThemeVariants(ButtonVariant.LUMO_ERROR)
-                            setClassName("button-small")
-                        }
-                    ).apply { spacing = true }
+                addColumn(ComponentRenderer<Button, StudyRow> { row ->
+                    Button("Просмотр") { viewStudyDetails(row) }.apply {
+                        addThemeVariants(ButtonVariant.LUMO_TERTIARY)
+                        className = "button-small"
+                    }
                 }).setHeader("Действия")
             }
             
@@ -386,342 +384,236 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
                 // Таблица
                 val overviewGrid = Grid<StudyRow>().apply {
                     setSizeFull()
-                    addColumn(StudyRow::id).setHeader("ID исследования")
-                    addColumn(StudyRow::studyDate).setHeader("Дата исследования")
-                    addColumn(StudyRow::labTechnician).setHeader("Лаборант")
-                    addColumn(StudyRow::isFluid).setHeader("Жидкостная")
-                        .setRenderer(ComponentRenderer { isFluid ->
-                            if (isFluid) Text("Да") else Text("Нет")
-                        })
-                    addColumn(StudyRow::barcode).setHeader("Штрихкод")
-                    
-                    addColumn(ComponentRenderer { row ->
-                        HorizontalLayout(
-                            Button("Просмотр", { viewStudyDetails(row) }),
-                            Button("Редактировать", { editStudy(row) }),
-                            Button("Удалить", { deleteStudy(row) }).apply {
-                                themeNames = listOf("error")
-                            }
-                        ).apply { spacing = true }
-                    }).setHeader("Действия")
+                    addColumn { row -> row.id }.setHeader("ID")
+                    addColumn { row -> row.studyDate }.setHeader("Дата")
+                    addColumn { row -> row.labTechnician }.setHeader("Лаборант")
                 }
                 
-                val countLabel = Span("Количество исследований: 0")
-                countLabel.setId("studiesCountValue")
+                add(overviewGrid)
                 
-                add(countLabel, overviewGrid)
+                val closeBtn = Button("Закрыть") { close() }
+                add(closeBtn)
             }
             
             add(content)
-            
-            val closeButton = Button("×") { close() }
-            closeButton.addClassName("close-button")
-            header?.add(closeButton)
         }
-
-        // Модальное окно деталей исследования
-        studyDetailsDialog.apply {
-            width = "90%"
-            maxWidth = "1000px"
-            
-            val content = VerticalLayout().apply {
-                setPadding(true)
-                add(H2("Детали исследования"))
-                add(Div().apply { 
-                    text = "Здесь будут отображены детали исследования"
-                    setPadding(true)
-                })
-            }
-            
-            add(content)
-            
-            val closeButton = Button("×") { close() }
-            closeButton.addClassName("close-button")
-            header?.add(closeButton)
-        }
-
+        
         // Модальное окно поиска пациента
         patientSearchDialog.apply {
-            width = "500px"
+            width = "600px"
             
             val content = VerticalLayout().apply {
                 setPadding(true)
                 setSpacing(true)
                 
-                add(H3("Поиск пациента"))
+                add(H2("Поиск пациента"))
                 
-                val searchField = TextField("ФИО или СНИЛС")
-                val searchButton = Button("Найти") {
-                    // Логика поиска пациента
-                    Notification.show("Поиск пациента...", 3000, Notification.Position.BOTTOM_CENTER)
-                }
+                val searchField = TextField("ФИО")
+                val searchBtn = Button("Найти")
+                val resultsList = ListBox<String>()
                 
-                val resultsGrid = Grid<PatientRow>().apply {
-                    setSizeFull()
-                    addColumn(PatientRow::fio).setHeader("ФИО")
-                    addColumn(PatientRow::birthDate).setHeader("Дата рождения")
-                    addColumn(PatientRow::snils).setHeader("СНИЛС")
-                    
-                    addColumn(ComponentRenderer { row ->
-                        Button("Выбрать") {
-                            selectPatient(row)
-                            patientSearchDialog.close()
+                searchBtn.addClickListener {
+                    ioScope.launch {
+                        try {
+                            progressBar.isVisible = true
+                            val patients = patientRepository.findByFio(searchField.value)
+                            
+                            uiScope.launch {
+                                resultsList.items = patients.map { "${it.lastName} ${it.firstName} ${it.middleName}" }
+                                progressBar.isVisible = false
+                            }
+                        } catch (e: Exception) {
+                            uiScope.launch {
+                                Notification.show("Ошибка поиска: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                                progressBar.isVisible = false
+                            }
                         }
-                    }).setHeader("Действие")
+                    }
                 }
                 
-                add(searchField, searchButton, resultsGrid)
+                add(searchField, searchBtn, resultsList)
+                
+                val closeBtn = Button("Закрыть") { close() }
+                add(closeBtn)
             }
             
             add(content)
+        }
+        
+        // Модальное окно деталей исследования
+        studyDetailsDialog.apply {
+            width = "800px"
             
-            val closeButton = Button("×") { close() }
-            closeButton.addClassName("close-button")
-            header?.add(closeButton)
+            val content = VerticalLayout().apply {
+                setPadding(true)
+                setSpacing(true)
+                
+                add(H2("Детали исследования"))
+                
+                val detailsText = Paragraph()
+                add(detailsText)
+                
+                val closeBtn = Button("Закрыть") { close() }
+                add(closeBtn)
+            }
+            
+            add(content)
         }
     }
 
-    data class PatientRow(
-        val id: Int,
-        val fio: String,
-        val birthDate: String,
-        val snils: String?
-    )
-
-    private fun setupOverviewFilters(): Component {
-        return VerticalLayout().apply {
+    private fun setupOverviewFilters(): HorizontalLayout {
+        return HorizontalLayout().apply {
             setWidthFull()
+            spacing = true
             
-            val dateFilterComboBox = ComboBox<String>("Фильтр по дате").apply {
-                items = listOf("Все", "Сегодня", "Этот месяц", "Произвольный диапазон")
-                value = "Все"
+            val dateFrom = DatePicker("С даты")
+            val dateTo = DatePicker("По дату")
+            val doctorFilter = ComboBox<String>("Врач").apply {
+                setItems(emptyList())
             }
             
-            val customDateRange = HorizontalLayout().apply {
-                isVisible = false
-                add(DatePicker("От"), DatePicker("До"))
-            }
-            
-            dateFilterComboBox.addValueChangeListener { event ->
-                customDateRange.isVisible = event.value == "Произвольный диапазон"
-            }
-            
-            val serviceFilter = ComboBox<String>("Услуга").apply {
-                items = listOf("", "Все услуги")
-                value = ""
-            }
-            
-            val applyButton = Button("Применить")
-            val resetButton = Button("Сбросить")
-            
-            val searchLayout = HorizontalLayout(
-                TextField("Поиск стекла").apply { placeholder = "ID исследования" },
-                Button("Найти")
-            )
-            
-            add(
-                HorizontalLayout(dateFilterComboBox, serviceFilter, applyButton, resetButton).apply {
-                    setWidthFull()
-                    flexWrap = FlexWrap.WRAP
-                },
-                customDateRange,
-                searchLayout
-            )
+            add(dateFrom, dateTo, doctorFilter)
         }
     }
 
     private fun loadData() {
-        transaction {
-            // Загрузка районов
+        ioScope.launch {
             try {
-                val raions = Raion.all().map { it.nameRaion ?: "" }.filter { it.isNotEmpty() }
-                raionComboBox.setItems(raions
+                progressBar.isVisible = true
+                
+                // Загрузка справочников
+                val doctors = userRepository.findAllDoctors()
+                val organizations = patientRepository.findAllOrganizations()
+                val departments = patientRepository.findAllDepartments()
+                
+                uiScope.launch {
+                    doctorComboBox.setItems(doctors)
+                    referringDoctorComboBox.setItems(doctors)
+                    medicalOrganizationComboBox.setItems(organizations)
+                    departmentComboBox.setItems(departments)
+                    
+                    loadStudies()
+                    progressBar.isVisible = false
+                }
             } catch (e: Exception) {
-                // Игнорируем ошибки загрузки
-            }
-            
-            // Загрузка врачей
-            try {
-                val doctors = Physicians.all().filter { it.role == "doctor" }.map { it.fullName }
-                doctorComboBox.setItems(doctors
-            } catch (e: Exception) {
-                doctorComboBox.setItems(emptyList()
-            }
-            
-            // Загрузка лаборантов
-            try {
-                val labTechnicians = Physicians.all().filter { it.role == "lab_technician" }.map { it.fullName }
-                labTechnicianComboBox.setItems(labTechnicians
-            } catch (e: Exception) {
-                labTechnicianComboBox.setItems(emptyList()
-            }
-            
-            // Загрузка медицинских организаций
-            try {
-                val organizations = Organ.all().map { it.nameOrgan ?: "" }.filter { it.isNotEmpty() }
-                medicalOrganizationComboBox.setItems(organizations
-            } catch (e: Exception) {
-                medicalOrganizationComboBox.setItems(emptyList()
-            }
-            
-            // Загрузка отделений
-            try {
-                val departments = Otdel.all().map { it.department ?: "" }.filter { it.isNotEmpty() }
-                departmentComboBox.setItems(departments
-            } catch (e: Exception) {
-                departmentComboBox.setItems(emptyList()
-            }
-            
-            // Загрузка услуг
-            try {
-                val services = Service.all().map { it.name ?: "" }.filter { it.isNotEmpty() }
-                serviceComboBox.setItems(services
-            } catch (e: Exception) {
-                serviceComboBox.setItems(emptyList()
-            }
-            
-            // Загрузка комментариев
-            try {
-                val comments = Comments.all().map { it.name }
-                commentComboBox.setItems(comments
-            } catch (e: Exception) {
-                commentComboBox.setItems(emptyList()
-            }
-            
-            // Загрузка локализаций
-            try {
-                val localizations = Loc.all().map { it.location }
-                localizationComboBox.setItems(localizations
-            } catch (e: Exception) {
-                localizationComboBox.setItems(emptyList()
-            }
-            
-            // Загрузка Bethesda терминов
-            try {
-                val bethesdaTerms = Bethesda.all().map { it.fullName }
-                gistMatikComboBox.setItems(bethesdaTerms
-                znoDnoComboBox.setItems(bethesdaTerms
-            } catch (e: Exception) {
-                gistMatikComboBox.setItems(emptyList()
-                znoDnoComboBox.setItems(emptyList()
-            }
-            
-            // Загрузка МКБ
-            try {
-                val mkbCodes = Mkb.all().map { "${it.code} - ${it.diagnosisList}" }.filter { it.isNotBlank() }
-                clinicalDiagnosisComboBox.setItems(mkbCodes
-            } catch (e: Exception) {
-                clinicalDiagnosisComboBox.setItems(emptyList()
-            }
-            
-            // Загрузка врачей-направителей
-            try {
-                val referringDoctors = Docnaprav.all().map { it.doctorNapravitel ?: "" }.filter { it.isNotEmpty() }
-                referringDoctorComboBox.setItems(referringDoctors
-            } catch (e: Exception) {
-                referringDoctorComboBox.setItems(emptyList()
-            }
-            
-            // Загрузка характера исследования
-            try {
-                val researchTypes = StudyCharacter.all().map { it.name ?: "" }.filter { it.isNotEmpty() }
-                researchTypeComboBox.setItems(researchTypes
-            } catch (e: Exception) {
-                researchTypeComboBox.setItems(emptyList()
-            }
-            
-            // Загрузка типов материалов
-            try {
-                val materialTypes = SampleTypes.all().map { it.name }.distinct()
-                materialTypeComboBox.setItems(materialTypes
-            } catch (e: Exception) {
-                materialTypeComboBox.setItems(emptyList()
-            }
-            
-            // Загрузка шифров
-            try {
-                val ciphers = CodeCytology.all().map { "${it.codeSi} - ${it.nameCodeSi}" }.filter { it.isNotBlank() }
-                ciphersComboBox.setItems(ciphers
-            } catch (e: Exception) {
-                ciphersComboBox.setItems(emptyList()
+                uiScope.launch {
+                    Notification.show("Ошибка загрузки данных: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                    progressBar.isVisible = false
+                }
             }
         }
-        
-        loadStudiesGrid()
     }
 
-    private fun loadStudiesGrid() {
-        transaction {
+    private fun loadStudies() {
+        ioScope.launch {
             try {
-                val studies = Studies.all().orderBy(Studies.id.desc()).limit(100).map { study ->
-                    StudyRow(
-                        id = study.id.value,
-                        studyDate = study.studyDate.toString(),
-                        labTechnician = study.labTechnicianId ?: "",
-                        isFluid = study.isFluid ?: false,
-                        barcode = study.barcode
-                    )
+                val studies = studyRepository.findAll()
+                
+                uiScope.launch {
+                    val rows = studies.map { study ->
+                        StudyRow(
+                            id = study.id,
+                            studyDate = study.studyDate?.toString() ?: "",
+                            labTechnician = study.labTechnician ?: "",
+                            isFluid = study.isFluid ?: false,
+                            barcode = study.barcode
+                        )
+                    }
+                    studiesGrid.setItems(rows)
                 }
-                studiesGrid.setItems(studies
             } catch (e: Exception) {
-                studiesGrid.setItems(emptyList()
+                uiScope.launch {
+                    Notification.show("Ошибка загрузки исследований: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                }
             }
         }
     }
 
     private fun calculateAge() {
-        val birthDate = birthDateField.value
-        if (birthDate != null) {
-            val period = java.time.Period.between(birthDate, LocalDate.now())
-            ageField.value = "${period.years} лет"
-        } else {
-            ageField.value = ""
+        birthDateField.value?.let { birthDate ->
+            val age = Period.between(birthDate, LocalDate.now()).years
+            ageField.value = age.toString()
         }
     }
 
-    // Обработчики событий
     private fun createNewStudy() {
         clearForm()
-        Notification.show("Создание нового исследования", 3000, Notification.Position.BOTTOM_CENTER)
+        Notification.show("Создание нового исследования", 2000, Notification.Position.BOTTOM_CENTER)
+    }
+
+    private fun clearForm() {
+        caseNumberField.clear()
+        ambulatorySearchField.clear()
+        directionField.clear()
+        peresmotrCheckbox.value = false
+        patientLastNameField.clear()
+        patientFirstNameField.clear()
+        patientMiddleNameField.clear()
+        birthDateField.clear()
+        ageField.clear()
+        snilsField.clear()
+        addressField.clear()
+        insuranceField.clear()
+        isDismissedField.clear()
+        ambulatoryCardNumberField.clear()
+        isEmployedCheckbox.value = false
+        directionNumberField.clear()
+        receiptDateField.clear()
+        slidesCountField.clear()
+        studyDateField.clear()
+        conclusionTextArea.clear()
     }
 
     private fun printReferral() {
-        Notification.show("Печать направления...", 3000, Notification.Position.BOTTOM_CENTER)
+        Notification.show("Печать направления", 2000, Notification.Position.BOTTOM_CENTER)
     }
 
     private fun showStudiesOverview() {
         studiesOverviewDialog.open()
-        loadStudiesGrid()
     }
 
     private fun showProfilaktika() {
-        // Переход на страницу профосмотра
-        UI.getCurrent().page.setLocation("profilaktika")
+        Notification.show("Профосмотр", 2000, Notification.Position.BOTTOM_CENTER)
     }
 
     private fun showReports() {
-        // Переход на страницу отчетов
-        UI.getCurrent().page.setLocation("reports")
+        Notification.show("Отчеты", 2000, Notification.Position.BOTTOM_CENTER)
     }
 
     private fun logout() {
         VaadinSession.getCurrent().session.invalidate()
-        UI.getCurrent().page.setLocation("login")
+        UI.getCurrent().navigate("login")
     }
 
     private fun showPatientSearch() {
         patientSearchDialog.open()
     }
 
-    private fun selectPatient(patient: PatientRow) {
-        // Заполнение полей данными пациента
-        val fioParts = patient.fio.split(" ")
-        patientLastNameField.value = fioParts.getOrElse(0) { "" }
-        patientFirstNameField.value = fioParts.getOrElse(1) { "" }
-        patientMiddleNameField.value = fioParts.getOrElse(2) { "" }
-        snilsField.value = patient.snils ?: ""
-        
-        Notification.show("Пациент выбран: ${patient.fio}", 3000, Notification.Position.BOTTOM_CENTER)
+    private fun saveStudy() {
+        ioScope.launch {
+            try {
+                progressBar.isVisible = true
+                
+                // Сохранение исследования
+                studyRepository.save(
+                    caseNumber = caseNumberField.value,
+                    patientFio = "${patientLastNameField.value} ${patientFirstNameField.value} ${patientMiddleNameField.value}",
+                    studyDate = studyDateField.value,
+                    conclusion = conclusionTextArea.value
+                )
+                
+                uiScope.launch {
+                    Notification.show("Исследование сохранено", 2000, Notification.Position.BOTTOM_CENTER)
+                    progressBar.isVisible = false
+                    loadStudies()
+                }
+            } catch (e: Exception) {
+                uiScope.launch {
+                    Notification.show("Ошибка сохранения: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                    progressBar.isVisible = false
+                }
+            }
+        }
     }
 
     private fun viewStudyDetails(row: StudyRow) {
@@ -729,108 +621,34 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
     }
 
     private fun editStudy(row: StudyRow) {
-        Notification.show("Редактирование исследования #${row.id}", 3000, Notification.Position.BOTTOM_CENTER)
+        Notification.show("Редактирование исследования ${row.id}", 2000, Notification.Position.BOTTOM_CENTER)
     }
 
     private fun deleteStudy(row: StudyRow) {
-        val confirmDialog = Dialog()
-        confirmDialog.width = "400px"
-        
-        val content = VerticalLayout().apply {
-            setPadding(true)
-            setSpacing(true)
-            
-            add(H3("Подтверждение удаления"))
-            add(Text("Вы уверены, что хотите удалить исследование #${row.id}?"))
-            
-            val buttons = HorizontalLayout(
-                Button("Удалить", {
-                    // Логика удаления
-                    transaction {
-                        try {
-                            Studies.deleteWhere { Studies.id eq row.id }
-                            Notification.show("Исследование удалено", 3000, Notification.Position.BOTTOM_CENTER)
-                            loadStudiesGrid()
-                        } catch (e: Exception) {
-                            Notification.show("Ошибка при удалении: ${e.message}", 5000, Notification.Position.BOTTOM_CENTER)
-                        }
-                    }
-                    confirmDialog.close()
-                    studiesOverviewDialog.close()
-                }).apply { themeNames = listOf("error", "primary") },
-                Button("Отмена", { confirmDialog.close() }).apply { themeNames = listOf("tertiary") }
-            ).apply { spacing = true }
-            
-            add(buttons)
-        }
-        
-        confirmDialog.add(content)
-        confirmDialog.open()
-    }
-
-    private fun saveStudy() {
-        transaction {
+        ioScope.launch {
             try {
-                // Сохранение данных исследования
-                Notification.show("Исследование сохранено", 3000, Notification.Position.BOTTOM_CENTER)
-                loadStudiesGrid()
+                progressBar.isVisible = true
+                studyRepository.deleteById(row.id)
+                
+                uiScope.launch {
+                    Notification.show("Исследование удалено", 2000, Notification.Position.BOTTOM_CENTER)
+                    progressBar.isVisible = false
+                    loadStudies()
+                }
             } catch (e: Exception) {
-                Notification.show("Ошибка при сохранении: ${e.message}", 5000, Notification.Position.BOTTOM_CENTER)
+                uiScope.launch {
+                    Notification.show("Ошибка удаления: ${e.message}", 3000, Notification.Position.BOTTOM_CENTER)
+                    progressBar.isVisible = false
+                }
             }
         }
     }
 
-    private fun clearForm() {
-        // Очистка всех полей формы
-        caseNumberField.clear()
-        ambulatorySearchField.clear()
-        directionField.clear()
-        peresmotrCheckbox.value = false
-        
-        patientLastNameField.clear()
-        patientFirstNameField.clear()
-        patientMiddleNameField.clear()
-        birthDateField.clear()
-        ageField.clear()
-        genderComboBox.value = "Женский"
-        snilsField.clear()
-        raionComboBox.clear()
-        addressField.clear()
-        insuranceField.clear()
-        isDismissedField.clear()
-        ambulatoryCardNumberField.clear()
-        isEmployedCheckbox.value = false
-        
-        directionNumberField.clear()
-        medicalOrganizationComboBox.clear()
-        receiptDateField.clear()
-        slidesCountField.clear()
-        departmentComboBox.clear()
-        referringDoctorComboBox.clear()
-        researchTypeComboBox.clear()
-        clinicalDiagnosisComboBox.clear()
-        localizationComboBox.clear()
-        ciphersComboBox.clear()
-        materialTypeComboBox.clear()
-        gistMatikComboBox.clear()
-        histologicallyConfirmedCheckbox.value = false
-        conclusionMatchedCheckbox.value = false
-        
-        studyDateField.value = LocalDate.now()
-        doctorComboBox.clear()
-        labTechnicianComboBox.clear()
-        znoDnoComboBox.clear()
-        serviceComboBox.clear()
-        conclusionTextArea.clear()
-        commentComboBox.clear()
-    }
-
     override fun beforeEnter(event: BeforeEnterEvent) {
-        val auth = org.springframework.security.core.context.SecurityContextHolder.getContext().authentication
-        
-        if (auth == null || !auth.isAuthenticated || 
-            auth is org.springframework.security.authentication.AnonymousAuthenticationToken) {
-            event.rerouteTo("login")
+        val session = VaadinSession.getCurrent()
+        val user = session.getAttribute("user")
+        if (user == null) {
+            event.forwardTo("login")
         }
     }
 }

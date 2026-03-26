@@ -144,4 +144,10 @@ class UserRepository {
                 )
             }
     }
+
+    fun findAllDoctors(): List<String> = transaction {
+        UsersTable.selectAll()
+            .map { it[UsersTable.fioName] ?: it[UsersTable.login] }
+            .distinct()
+    }
 }

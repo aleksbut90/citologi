@@ -49,25 +49,41 @@ class PatientRepository {
             .singleOrNull()
     }
 
-    fun findByFullName(query: String): List<PatientDto> = transaction {
-        Patients.select {
-            Patients.fullName.like("%$query%")
-        }
-            .map { row ->
-                PatientDto(
-                    id = row[Patients.id],
-                    fullName = row[Patients.fullName],
-                    snils = row[Patients.snils],
-                    districtId = row[Patients.districtId],
-                    address = row[Patients.address],
-                    insurancePolicyNumber = row[Patients.insurancePolicyNumber],
-                    ambulatoryCardNumber = row[Patients.ambulatoryCardNumber],
-                    isEmployed = row[Patients.isEmployed],
-                    isDismissed = row[Patients.isDismissed],
-                    dismissalDate = row[Patients.dismissalDate],
-                    birthdate = row[Patients.birthdate]
-                )
+    fun findByFio(query: String): List<PatientDto> = transaction {
+        if (query.isBlank()) {
+            emptyList()
+        } else {
+            Patients.select {
+                Patients.fullName.like("%$query%")
             }
+                .map { row ->
+                    PatientDto(
+                        id = row[Patients.id],
+                        fullName = row[Patients.fullName],
+                        snils = row[Patients.snils],
+                        districtId = row[Patients.districtId],
+                        address = row[Patients.address],
+                        insurancePolicyNumber = row[Patients.insurancePolicyNumber],
+                        ambulatoryCardNumber = row[Patients.ambulatoryCardNumber],
+                        isEmployed = row[Patients.isEmployed],
+                        isDismissed = row[Patients.isDismissed],
+                        dismissalDate = row[Patients.dismissalDate],
+                        birthdate = row[Patients.birthdate]
+                    )
+                }
+        }
+    }
+
+    fun findAllOrganizations(): List<String> = transaction {
+        Lpu.selectAll()
+            .map { it[Lpu.name] }
+            .distinct()
+    }
+
+    fun findAllDepartments(): List<String> = transaction {
+        Otdel.selectAll()
+            .map { it[Otdel.name] }
+            .distinct()
     }
 
     fun create(
@@ -154,4 +170,8 @@ data class PatientDto(
     val isDismissed: Boolean,
     val dismissalDate: LocalDate?,
     val birthdate: LocalDate?
-)
+) {
+    val lastName: String get() = fullName.split(" ").getOrElse(0) { "" }
+    val firstName: String get() = fullName.split(" ").getOrElse(1) { "" }
+    val middleName: String get() = fullName.split(" ").getOrElse(2) { "" }
+}

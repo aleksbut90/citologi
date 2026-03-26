@@ -101,6 +101,53 @@ class StudyRepository {
             }
     }
 
+    fun save(
+        caseNumber: String?,
+        patientFio: String?,
+        studyDate: LocalDate?,
+        conclusion: String?
+    ): StudyDto = transaction {
+        // Сначала ищем или создаем пациента
+        val patientId = if (!patientFio.isNullOrBlank()) {
+            val existingPatient = Patients.select { Patients.fullName eq patientFio }.singleOrNull()
+            existingPatient?.get(Patients.id) ?: Patients.insert {
+                it[Patients.fullName] = patientFio
+            } get Patients.id
+        } else null
+
+        val id = Studies.insert {
+            caseNumber?.let { cn -> it[Studies.barcode] = cn }
+            studyDate?.let { sd -> it[Studies.studyDate] = sd }
+            patientId?.let { pid -> it[Studies.patientId] = pid }
+            conclusion?.let { c -> it[Studies.conclusionText] = c }
+        } get Studies.id
+
+        StudyDto(
+            id = id,
+            studyDate = studyDate ?: LocalDate.now(),
+            doctorId = null,
+            labTechnicianId = null,
+            isReviewed = false,
+            znoDno = null,
+            serviceId = null,
+            urgencyId = null,
+            studyTypeId = null,
+            isFluid = false,
+            slidesCount = null,
+            transferredToDoctor = null,
+            bethesdaTermId = null,
+            pathologiesCount = null,
+            comment = null,
+            patientId = patientId,
+            barcode = caseNumber,
+            materialId = null,
+            conclusionText = conclusion,
+            version = 0,
+            lockedByUserId = null,
+            lockedAt = null
+        )
+    }
+
     fun create(
         studyDate: LocalDate,
         doctorId: String? = null,
@@ -211,7 +258,7 @@ class StudyRepository {
         } > 0
     }
 
-    fun delete(id: Int): Boolean = transaction {
+    fun deleteById(id: Int): Boolean = transaction {
         Studies.deleteWhere { Studies.id eq id } > 0
     }
 }
@@ -239,4 +286,6 @@ data class StudyDto(
     val version: Int,
     val lockedByUserId: String?,
     val lockedAt: java.time.Instant?
-)
+) {
+    val labTechnician: String? get() = labTechnicianId // Для совместимости с HomeView
+}

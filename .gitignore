@@ -4,47 +4,56 @@
 *.jar
 *.war
 *.ear
-*.kotlin_metadata
-*.kotlin_builtins
-*.meta
-*.kt.meta
-*.kotlin_module
+*.o
+*.obj
+*.so
+*.dll
+*.exe
+build/
+target/
+out/
 
 # Dependencies
 .gradle/
-build/
-target/
-lib/
 node_modules/
-venv/
-.venv/
-__pycache__/
-*.egg-info/
+lib/
+libs/
 
-# IDE
-.idea/
-.vscode/
-*.iml
-*.iws
-*.ipr
-
-# System
-.DS_Store
-Thumbs.db
+# Logs and temp files
+*.log
+*.tmp
 *.swp
 *.swo
-*.tmp
-
-# Logs
-*.log
 
 # Environment
 .env
 .env.local
-*.env.*
+.env.*
 
-# Coverage
+# Editors
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Coverage reports
 coverage/
 htmlcov/
 .coverage
+
+# Python specific (if applicable)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.Python
+*.egg-info/
+dist/
 ```
