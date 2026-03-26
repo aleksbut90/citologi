@@ -34,7 +34,7 @@ import java.time.LocalDate
 import java.time.Period
 
 @Route("")
-class HomeView : VerticalLayout(), BeforeEnterObserver {
+class HomeView : VerticalLayout() {
 
     private val uiScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -143,14 +143,17 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
         // Загружаем данные после инициализации UI, репозитории создаются в onAttach
     }
 
-    override fun beforeEnter(event: BeforeEnterEvent) {
-        // Инициализируем репозитории при входе в view
-        userRepository = UserRepository()
-        patientRepository = PatientRepository()
-        studyRepository = StudyRepository()
-        
-        // Загружаем данные
-        loadData()
+    override fun onAttach(attachEvent: AttachEvent) {
+        super.onAttach(attachEvent)
+        // Инициализируем репозитории при подключении view
+        if (!this::userRepository.isInitialized) {
+            userRepository = UserRepository()
+            patientRepository = PatientRepository()
+            studyRepository = StudyRepository()
+            
+            // Загружаем данные
+            loadData()
+        }
     }
 
     private fun setupHeader() {
