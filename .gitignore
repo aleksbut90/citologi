@@ -1,30 +1,50 @@
 ```
-.gradle/
-build/
+# Compiled and build artifacts
 *.class
 *.jar
 *.war
 *.ear
-*.zip
-*.tar
-*.gz
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
+*.kotlin_metadata
+*.kotlin_builtins
+*.meta
+*.kt.meta
+*.kotlin_module
+
+# Dependencies
+.gradle/
+build/
+target/
+lib/
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# System
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
 ```

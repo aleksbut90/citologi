@@ -1,7 +1,7 @@
 package com.citologic.security
 
 import com.citologic.ui.LoginView
-import com.citologic.ui.MainView
+import com.citologic.ui.HomeView
 import com.vaadin.flow.component.UI
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.server.*
@@ -36,7 +36,7 @@ class ConfigureUIServiceInitListener :
 
         // Авторизованный → не пускать на LoginView
         if (loggedIn && target == LoginView::class.java) {
-            event.rerouteTo(MainView::class.java)
+            event.rerouteTo(HomeView::class.java)
         }
     }
 
