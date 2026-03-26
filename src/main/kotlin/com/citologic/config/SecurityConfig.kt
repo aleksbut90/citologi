@@ -19,24 +19,11 @@ class SecurityConfig(
 ) : VaadinWebSecurity() {
 
     override fun configure(http: HttpSecurity) {
-        // Устанавливаем LoginView для Vaadin
+        // Устанавливаем LoginView для Vaadin - это автоматически настроит правила доступа
         setLoginView(http, LoginView::class.java)
         
         http
             .csrf { it.disable() }
-            .authorizeHttpRequests { auth ->
-                auth.requestMatchers(
-                    "/login",
-                    "/logout",
-                    "/error",
-                    "/favicon.ico",
-                    "/offline-stub.html",
-                    "/VAADIN/**"
-                ).permitAll()
-                
-                // Все остальные запросы требуют аутентификации
-                auth.anyRequest().authenticated()
-            }
             .authenticationProvider(customAuthenticationProvider)
             .httpBasic { it.disable() }
             .formLogin { it.disable() }
