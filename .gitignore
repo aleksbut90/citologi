@@ -1,1 +1,1 @@
-Nothing should be ignored based on the provided file changes, as only a source code file (`src/main/kotlin/com/citologic/config/SecurityConfig.kt`) was modified and no build artifacts, dependencies, or temporary files were included in the changes.
+Nothing needs to be added to the .gitignore file since only a Kotlin source file was modified and no build artifacts, dependencies, or temporary files were detected in the changes.
