@@ -410,7 +410,7 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
                 
                 val searchField = TextField("ФИО")
                 val searchBtn = Button("Найти")
-                val resultsList = ListBox<String>()
+                val resultsList = com.vaadin.flow.component.listbox.ListBox<String>()
                 
                 searchBtn.addClickListener {
                     ioScope.launch {
@@ -419,7 +419,7 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
                             val patients = patientRepository.findByFio(searchField.value)
                             
                             uiScope.launch {
-                                resultsList.items = patients.map { "${it.lastName} ${it.firstName} ${it.middleName}" }
+                                resultsList.setItems(patients.map { "${it.lastName} ${it.firstName} ${it.middleName}" })
                                 progressBar.isVisible = false
                             }
                         } catch (e: Exception) {
