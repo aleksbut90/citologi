@@ -32,23 +32,21 @@ import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
 import com.vaadin.flow.server.VaadinSession
 import kotlinx.coroutines.*
+import com.vaadin.flow.spring.annotation.RouteScope
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.time.Period
 
 @Route("")
-class HomeView : VerticalLayout(), BeforeEnterObserver {
+@Component
+@RouteScope
+class HomeView(
+    @Autowired private val userRepository: UserRepository,
+    @Autowired private val patientRepository: PatientRepository,
+    @Autowired private val studyRepository: StudyRepository
+) : VerticalLayout(), BeforeEnterObserver {
 
-    @Autowired
-    private lateinit var userRepository: UserRepository
-
-    @Autowired
-    private lateinit var patientRepository: PatientRepository
-
-    @Autowired
-    private lateinit var studyRepository: StudyRepository
-
-    // Coroutine scopes - используем правильный dispatcher для Vaadin
     private val uiScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
