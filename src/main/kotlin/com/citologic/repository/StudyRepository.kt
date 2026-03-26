@@ -261,6 +261,73 @@ class StudyRepository {
     fun deleteById(id: Int): Boolean = transaction {
         Studies.deleteWhere { Studies.id eq id } > 0
     }
+    
+    // Методы для загрузки справочников
+    fun findAllServices(): List<Pair<Int, String>> = try { transaction {
+        Services.selectAll().map { row ->
+            Pair(row[Services.id], row[Services.name])
+        }.distinctBy { it.first }
+    }} catch (e: Exception) { emptyList() }
+    
+    fun findAllResearchTypes(): List<Pair<Int, String>> = try { transaction {
+        ResearchTypes.selectAll().map { row ->
+            Pair(row[ResearchTypes.id], row[ResearchTypes.name])
+        }.distinctBy { it.first }
+    }} catch (e: Exception) { emptyList() }
+    
+    fun findAllMaterialTypes(): List<Pair<Int, String>> = try { transaction {
+        MaterialTypes.selectAll().map { row ->
+            Pair(row[MaterialTypes.id], row[MaterialTypes.name])
+        }.distinctBy { it.first }
+    }} catch (e: Exception) { emptyList() }
+    
+    fun findAllGistologConclusions(): List<Pair<Int, String>> = try { transaction {
+        Gistolog.selectAll().map { row ->
+            Pair(row[Gistolog.id], row[Gistolog.name])
+        }.distinctBy { it.first }
+    }} catch (e: Exception) { emptyList() }
+    
+    fun findAllStudyTypes(): List<Pair<Int, String>> = try { transaction {
+        StudyTypes.selectAll().map { row ->
+            Pair(row[StudyTypes.id], row[StudyTypes.name])
+        }.distinctBy { it.first }
+    }} catch (e: Exception) { emptyList() }
+    
+    fun findAllBethesdaTerms(): List<Pair<Int, String>> = try { transaction {
+        BethesdaTerms.selectAll().map { row ->
+            Pair(row[BethesdaTerms.id], row[BethesdaTerms.name])
+        }.distinctBy { it.first }
+    }} catch (e: Exception) { emptyList() }
+    
+    fun findAllZnoDno(): List<Pair<Int, String>> = try { transaction {
+        ZnoDno.selectAll().map { row ->
+            Pair(row[ZnoDno.id], row[ZnoDno.name])
+        }.distinctBy { it.first }
+    }} catch (e: Exception) { emptyList() }
+    
+    fun findAllUrgencies(): List<Pair<Int, String>> = try { transaction {
+        Urgencies.selectAll().map { row ->
+            Pair(row[Urgencies.id], row[Urgencies.name])
+        }.distinctBy { it.first }
+    }} catch (e: Exception) { emptyList() }
+    
+    fun findAllComments(): List<Pair<Int, String>> = try { transaction {
+        Comments.selectAll().map { row ->
+            Pair(row[Comments.id], row[Comments.name])
+        }.distinctBy { it.first }
+    }} catch (e: Exception) { emptyList() }
+    
+    fun findAllLocalizations(): List<Pair<Int, String>> = try { transaction {
+        Localizations.selectAll().map { row ->
+            Pair(row[Localizations.id], row[Localizations.name])
+        }.distinctBy { it.first }
+    }} catch (e: Exception) { emptyList() }
+    
+    fun findAllCiphers(): List<Pair<Int, String>> = try { transaction {
+        CodeCytology.selectAll().map { row ->
+            Pair(row[CodeCytology.id], row[CodeCytology.name])
+        }.distinctBy { it.first }
+    }} catch (e: Exception) { emptyList() }
 }
 
 data class StudyDto(
@@ -288,4 +355,33 @@ data class StudyDto(
     val lockedAt: java.time.Instant?
 ) {
     val labTechnician: String? get() = labTechnicianId // Для совместимости с HomeView
+    
+    companion object {
+        fun fromRow(row: ResultRow): StudyDto {
+            return StudyDto(
+                id = row[Studies.id],
+                studyDate = row[Studies.studyDate],
+                doctorId = row[Studies.doctorId],
+                labTechnicianId = row[Studies.labTechnicianId],
+                isReviewed = row[Studies.isReviewed],
+                znoDno = row[Studies.znoDno],
+                serviceId = row[Studies.serviceId],
+                urgencyId = row[Studies.urgencyId],
+                studyTypeId = row[Studies.studyTypeId],
+                isFluid = row[Studies.isFluid],
+                slidesCount = row[Studies.slidesCount],
+                transferredToDoctor = row[Studies.transferredToDoctor],
+                bethesdaTermId = row[Studies.bethesdaTermId],
+                pathologiesCount = row[Studies.pathologiesCount],
+                comment = row[Studies.comment],
+                patientId = row[Studies.patientId],
+                barcode = row[Studies.barcode],
+                materialId = row[Studies.materialId],
+                conclusionText = row[Studies.conclusionText],
+                version = row[Studies.version],
+                lockedByUserId = row[Studies.lockedByUserId],
+                lockedAt = row[Studies.lockedAt]
+            )
+        }
+    }
 }

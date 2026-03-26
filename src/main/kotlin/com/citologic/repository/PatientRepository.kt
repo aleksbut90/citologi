@@ -74,24 +74,41 @@ class PatientRepository {
         }
     }
 
-    fun findAllOrganizations(): List<String> {
+    fun findAllOrganizations(): List<Pair<String, String>> {
         return try {
             transaction {
                 Lpu.selectAll()
-                    .map { it[Lpu.name].orEmpty() }
-                    .filter { it.isNotEmpty() }
-                    .distinct()
+                    .map { Pair(it[Lpu.guid], it[Lpu.name]) }
+                    .filter { it.second.isNotEmpty() }
+                    .distinctBy { it.first }
             }
         } catch (e: Exception) {
             emptyList()
         }
     }
 
-    fun findAllDepartments(): List<String> {
+    fun findAllDepartments(): List<Pair<Int, String>> {
         return try {
             transaction {
                 Otdel.selectAll()
-                    .mapNotNull { row -> row[Otdel.department]?.trim()?.takeIf { it.isNotEmpty() } }
+                    .mapNotNull { row -> 
+                        val id = row[Otdel.id]
+                        val name = row[Otdel.department]?.trim()?.takeIf { it.isNotEmpty() }
+                        if (name != null) Pair(id, name) else null
+                    }
+                    .distinctBy { it.first }
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+    
+    fun findAllRaions(): List<String> {
+        return try {
+            transaction {
+                Districts.selectAll()
+                    .map { it[Districts.name].orEmpty() }
+                    .filter { it.isNotEmpty() }
                     .distinct()
             }
         } catch (e: Exception) {
