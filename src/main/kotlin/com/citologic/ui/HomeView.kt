@@ -2,6 +2,7 @@ package com.citologic.ui
 
 import com.citologic.model.*
 import com.citologic.repository.UserRepository
+import com.citologic.ui.components.Card
 import com.vaadin.flow.component.*
 import com.vaadin.flow.component.button.Button
 import com.vaadin.flow.component.button.ButtonVariant
@@ -14,11 +15,15 @@ import com.vaadin.flow.component.grid.Grid
 import com.vaadin.flow.component.html.*
 import com.vaadin.flow.component.icon.VaadinIcon
 import com.vaadin.flow.component.notification.Notification
-import com.vaadin.flow.component.orderedlayout.*
+import com.vaadin.flow.component.orderedlayout.FlexComponent
+import com.vaadin.flow.component.orderedlayout.FlexLayout
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout
+import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.component.textfield.IntegerField
 import com.vaadin.flow.component.textfield.TextArea
 import com.vaadin.flow.component.textfield.TextField
 import com.vaadin.flow.data.binder.Binder
+import com.vaadin.flow.data.renderer.ComponentRenderer
 import com.vaadin.flow.router.BeforeEnterEvent
 import com.vaadin.flow.router.BeforeEnterObserver
 import com.vaadin.flow.router.Route
@@ -28,6 +33,11 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
+// Алиасы для совместимости
+typealias JustifyContentMode = FlexComponent.JustifyContentMode
+typealias Alignment = FlexComponent.Alignment
+typealias FlexWrap = FlexLayout.FlexWrap
 
 @Route("")
 class HomeView : VerticalLayout(), BeforeEnterObserver {
@@ -48,7 +58,7 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
     private val birthDateField = DatePicker("Дата рождения")
     private val ageField = TextField("Возраст") { isEnabled = false }
     private val genderComboBox = ComboBox<String>("Пол").apply {
-        items = listOf("Женский", "Мужской")
+        setItems(listOf("Женский", "Мужской"))
         value = "Женский"
     }
     private val snilsField = TextField("СНИЛС")
@@ -129,8 +139,8 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
     private fun setupHeader() {
         val header = HorizontalLayout().apply {
             setWidthFull()
-            justifyContentMode = JustifyContentMode.BETWEEN
-            alignItems = Alignment.CENTER
+            justifyContentMode = FlexComponent.JustifyContentMode.BETWEEN
+            alignItems = FlexComponent.Alignment.CENTER
             addClassName("header")
             
             val title = H1("Цитологическая служба")
@@ -153,7 +163,7 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
     private fun setupControls() {
         val controlsLayout = HorizontalLayout().apply {
             setWidthFull()
-            justifyContentMode = JustifyContentMode.START
+            justifyContentMode = FlexComponent.JustifyContentMode.START
             spacing = true
             addClassName("controls")
             
@@ -336,13 +346,16 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
                 addColumn(ComponentRenderer { row ->
                     HorizontalLayout(
                         Button("Просмотр", { viewStudyDetails(row) }).apply {
-                            themeNames = listOf(ButtonVariant.LUMO_TERTIARY.small)
+                            addThemeVariants(ButtonVariant.LUMO_TERTIARY)
+                            setClassName("button-small")
                         },
                         Button("Редактировать", { editStudy(row) }).apply {
-                            themeNames = listOf(ButtonVariant.LUMO_TERTIARY.small)
+                            addThemeVariants(ButtonVariant.LUMO_TERTIARY)
+                            setClassName("button-small")
                         },
                         Button("Удалить", { deleteStudy(row) }).apply {
-                            themeNames = listOf(ButtonVariant.LUMO_ERROR.small)
+                            addThemeVariants(ButtonVariant.LUMO_ERROR)
+                            setClassName("button-small")
                         }
                     ).apply { spacing = true }
                 }).setHeader("Действия")
@@ -522,7 +535,7 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
             // Загрузка районов
             try {
                 val raions = Raion.all().map { it.nameRaion ?: "" }.filter { it.isNotEmpty() }
-                raionComboBox.items = raions
+                raionComboBox.setItems(raions
             } catch (e: Exception) {
                 // Игнорируем ошибки загрузки
             }
@@ -530,107 +543,107 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
             // Загрузка врачей
             try {
                 val doctors = Physicians.all().filter { it.role == "doctor" }.map { it.fullName }
-                doctorComboBox.items = doctors
+                doctorComboBox.setItems(doctors
             } catch (e: Exception) {
-                doctorComboBox.items = emptyList()
+                doctorComboBox.setItems(emptyList()
             }
             
             // Загрузка лаборантов
             try {
                 val labTechnicians = Physicians.all().filter { it.role == "lab_technician" }.map { it.fullName }
-                labTechnicianComboBox.items = labTechnicians
+                labTechnicianComboBox.setItems(labTechnicians
             } catch (e: Exception) {
-                labTechnicianComboBox.items = emptyList()
+                labTechnicianComboBox.setItems(emptyList()
             }
             
             // Загрузка медицинских организаций
             try {
                 val organizations = Organ.all().map { it.nameOrgan ?: "" }.filter { it.isNotEmpty() }
-                medicalOrganizationComboBox.items = organizations
+                medicalOrganizationComboBox.setItems(organizations
             } catch (e: Exception) {
-                medicalOrganizationComboBox.items = emptyList()
+                medicalOrganizationComboBox.setItems(emptyList()
             }
             
             // Загрузка отделений
             try {
                 val departments = Otdel.all().map { it.department ?: "" }.filter { it.isNotEmpty() }
-                departmentComboBox.items = departments
+                departmentComboBox.setItems(departments
             } catch (e: Exception) {
-                departmentComboBox.items = emptyList()
+                departmentComboBox.setItems(emptyList()
             }
             
             // Загрузка услуг
             try {
                 val services = Service.all().map { it.name ?: "" }.filter { it.isNotEmpty() }
-                serviceComboBox.items = services
+                serviceComboBox.setItems(services
             } catch (e: Exception) {
-                serviceComboBox.items = emptyList()
+                serviceComboBox.setItems(emptyList()
             }
             
             // Загрузка комментариев
             try {
                 val comments = Comments.all().map { it.name }
-                commentComboBox.items = comments
+                commentComboBox.setItems(comments
             } catch (e: Exception) {
-                commentComboBox.items = emptyList()
+                commentComboBox.setItems(emptyList()
             }
             
             // Загрузка локализаций
             try {
                 val localizations = Loc.all().map { it.location }
-                localizationComboBox.items = localizations
+                localizationComboBox.setItems(localizations
             } catch (e: Exception) {
-                localizationComboBox.items = emptyList()
+                localizationComboBox.setItems(emptyList()
             }
             
             // Загрузка Bethesda терминов
             try {
                 val bethesdaTerms = Bethesda.all().map { it.fullName }
-                gistMatikComboBox.items = bethesdaTerms
-                znoDnoComboBox.items = bethesdaTerms
+                gistMatikComboBox.setItems(bethesdaTerms
+                znoDnoComboBox.setItems(bethesdaTerms
             } catch (e: Exception) {
-                gistMatikComboBox.items = emptyList()
-                znoDnoComboBox.items = emptyList()
+                gistMatikComboBox.setItems(emptyList()
+                znoDnoComboBox.setItems(emptyList()
             }
             
             // Загрузка МКБ
             try {
                 val mkbCodes = Mkb.all().map { "${it.code} - ${it.diagnosisList}" }.filter { it.isNotBlank() }
-                clinicalDiagnosisComboBox.items = mkbCodes
+                clinicalDiagnosisComboBox.setItems(mkbCodes
             } catch (e: Exception) {
-                clinicalDiagnosisComboBox.items = emptyList()
+                clinicalDiagnosisComboBox.setItems(emptyList()
             }
             
             // Загрузка врачей-направителей
             try {
                 val referringDoctors = Docnaprav.all().map { it.doctorNapravitel ?: "" }.filter { it.isNotEmpty() }
-                referringDoctorComboBox.items = referringDoctors
+                referringDoctorComboBox.setItems(referringDoctors
             } catch (e: Exception) {
-                referringDoctorComboBox.items = emptyList()
+                referringDoctorComboBox.setItems(emptyList()
             }
             
             // Загрузка характера исследования
             try {
                 val researchTypes = StudyCharacter.all().map { it.name ?: "" }.filter { it.isNotEmpty() }
-                researchTypeComboBox.items = researchTypes
+                researchTypeComboBox.setItems(researchTypes
             } catch (e: Exception) {
-                researchTypeComboBox.items = emptyList()
+                researchTypeComboBox.setItems(emptyList()
             }
             
             // Загрузка типов материалов
             try {
                 val materialTypes = SampleTypes.all().map { it.name }.distinct()
-                materialTypeComboBox.items = materialTypes
+                materialTypeComboBox.setItems(materialTypes
             } catch (e: Exception) {
-                materialTypeComboBox.items = emptyList()
+                materialTypeComboBox.setItems(emptyList()
             }
             
             // Загрузка шифров
             try {
                 val ciphers = CodeCytology.all().map { "${it.codeSi} - ${it.nameCodeSi}" }.filter { it.isNotBlank() }
-                ciphersComboBox.items = ciphers
+                ciphersComboBox.setItems(ciphers
             } catch (e: Exception) {
-                ciphersComboBox.items = emptyList()
+                ciphersComboBox.setItems(emptyList()
             }
         }
         
@@ -649,9 +662,9 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
                         barcode = study.barcode
                     )
                 }
-                studiesGrid.items = studies
+                studiesGrid.setItems(studies
             } catch (e: Exception) {
-                studiesGrid.items = emptyList()
+                studiesGrid.setItems(emptyList()
             }
         }
     }
