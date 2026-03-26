@@ -46,8 +46,8 @@ class HomeView : VerticalLayout(), BeforeEnterObserver {
     @Autowired
     private lateinit var studyRepository: StudyRepository
 
-    // Coroutine scopes
-    private val uiScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    // Coroutine scopes - используем правильный dispatcher для Vaadin
+    private val uiScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     // Progress bar
