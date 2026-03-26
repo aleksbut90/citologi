@@ -1,6 +1,7 @@
 package com.citologic.config
 
 import com.citologic.service.CustomUserDetailsService
+import com.vaadin.flow.spring.security.VaadinWebSecurity
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
@@ -8,44 +9,28 @@ import org.springframework.security.authentication.ProviderManager
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
     private val customAuthenticationProvider: CustomAuthenticationProvider
-) {
+) : VaadinWebSecurity() {
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-
         http
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers(
-                    "/",                     // ← ВАЖНО!
                     "/login",
                     "/logout",
                     "/error",
                     "/favicon.ico",
-                    "/offline-stub.html",
-
-                    // Vaadin internal
-                    "/VAADIN/**",
-                    "/vaadinServlet/**",
-                    "/frontend/**",
-                    "/webjars/**",
-                    "/themes/**",
-                    "/HILLA/**",
-
-                    // Flow client bootstrap
-                    "/VAADIN/build/**",
-                    "/VAADIN/static/**",
-                    "/VAADIN/build/flow-client/**",
-
-                    // Your styles
-                    "/styles/**"
+                    "/offline-stub.html"
                 ).permitAll()
 
+                // Все остальные запросы требуют аутентификации
                 auth.anyRequest().authenticated()
             }
             .authenticationProvider(customAuthenticationProvider)
@@ -57,7 +42,7 @@ class SecurityConfig(
                 logout.deleteCookies("JSESSIONID")
             }
 
-        return http.build()
+        return super.securityFilterChain(http).build()
     }
 
     @Bean

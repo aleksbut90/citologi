@@ -69,56 +69,11 @@ class LoginView(
         addClassName("loading-spinner")
     }
 
-    // Admin modal components
-    private val adminModal = Div().apply {
-        addClassName("admin-modal")
-        isVisible = false
-    }
-
-    private val adminUsernameField = TextField("Логин").apply {
-        width = "100%"
-        placeholder = "Введите логин администратора"
-    }
-
-    private val adminPasswordField = PasswordField("Пароль").apply {
-        width = "100%"
-        placeholder = "Введите пароль администратора"
-    }
-
-    private val adminErrorAlert = Div().apply {
-        isVisible = false
-        addClassName("error-alert")
-        val icon = Icon(VaadinIcon.EXCLAMATION_CIRCLE_O)
-        val messageSpan = Span()
-        messageSpan.element.setAttribute("id", "adminErrorMessage")
-        add(icon, messageSpan)
-    }
-
-    private val adminLoginButton = Button("Войти").apply {
-        width = "100%"
-        addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE)
-        addClickListener { handleAdminLogin() }
-    }
-
-    private val adminLoginSpinner = Div().apply {
-        isVisible = false
-        addClassName("loading-spinner")
-    }
-
     init {
         setSizeFull()
         justifyContentMode = FlexComponent.JustifyContentMode.CENTER
         alignItems = Alignment.CENTER
         addClassName("login-page")
-
-        // Admin settings icon
-        val adminSettingsIcon = Icon(VaadinIcon.COG).apply {
-            addClassName("admin-settings")
-            addClickListener { 
-                adminModal.isVisible = true
-                adminErrorAlert.isVisible = false
-            }
-        }
 
         // Login container
         val loginContainer = VerticalLayout().apply {
@@ -183,43 +138,7 @@ class LoginView(
             add(footer)
         }
 
-        // Admin modal content
-        val adminModalContent = Div().apply {
-            addClassName("admin-modal-content")
-            
-            val closeIcon = Icon(VaadinIcon.CLOSE).apply {
-                addClassName("close-admin-modal")
-                addClickListener { adminModal.isVisible = false }
-            }
-
-            val adminHeader = H2("Вход для администратора").apply {
-                style.set("text-align", "center")
-                style.set("margin-bottom", "1.5rem")
-            }
-
-            val adminForm = VerticalLayout().apply {
-                setPadding(false)
-                isSpacing = false
-                width = "100%"
-
-                add(adminUsernameField)
-                add(adminPasswordField)
-                add(adminErrorAlert)
-                
-                val adminButtonWrapper = HorizontalLayout(adminLoginButton).apply {
-                    width = "100%"
-                    justifyContentMode = FlexComponent.JustifyContentMode.CENTER
-                    style.set("margin-top", "1rem")
-                }
-                add(adminButtonWrapper)
-            }
-
-            add(closeIcon, adminHeader, adminForm)
-        }
-
-        adminModal.add(adminModalContent)
-
-        add(adminSettingsIcon, loginContainer, adminModal)
+        add(loginContainer)
     }
 
     private fun handleLogin() {
@@ -227,21 +146,21 @@ class LoginView(
         val password = passwordField.value
 
         if (username.isEmpty() || password.isEmpty()) {
-            showError("Пожалуйста, заполните все поля", false)
+            showError("Пожалуйста, заполните все поля")
             return
         }
 
         if (password.length < 6) {
-            showError("Пароль должен содержать минимум 6 символов", false)
+            showError("Пароль должен содержать минимум 6 символов")
             return
         }
 
         if (!Regex("^[a-zA-Z0-9_]+$").matches(username)) {
-            showError("Логин может содержать только буквы, цифры и знак подчеркивания", false)
+            showError("Логин может содержать только буквы, цифры и знак подчеркивания")
             return
         }
 
-        setLoading(true, false)
+        setLoading(true)
 
         try {
             val authentication = authenticationManager.authenticate(
@@ -278,83 +197,22 @@ class LoginView(
             }
 
         } catch (e: Exception) {
-            showError("Неверный логин или пароль", false)
-            setLoading(false, false)
+            showError("Неверный логин или пароль")
+            setLoading(false)
         }
     }
 
-    private fun handleAdminLogin() {
-        val username = adminUsernameField.value.trim()
-        val password = adminPasswordField.value
-
-        if (username.isEmpty() || password.isEmpty()) {
-            showAdminError("Пожалуйста, заполните все поля")
-            return
-        }
-
-        setAdminLoading(true)
-
-        try {
-            val authentication = authenticationManager.authenticate(
-                UsernamePasswordAuthenticationToken(username, password)
-            )
-
-            SecurityContextHolder.getContext().authentication = authentication
-
-            val userDetails = userDetailsService.loadUserByUsername(username)
-            val role = userDetails.authorities.firstOrNull()?.authority?.removePrefix("ROLE_") ?: "USER"
-
-            if (role != "admin") {
-                showAdminError("Требуется права администратора")
-                setAdminLoading(false)
-                return
-            }
-
-            val session = VaadinSession.getCurrent()
-            session.session.setAttribute(
-                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-                SecurityContextHolder.getContext()
-            )
-            session.setAttribute("userFIO", username)
-            session.setAttribute("userStatus", role)
-            session.setAttribute("isAdmin", true)
-
-            adminModal.isVisible = false
-            UI.getCurrent().page.setLocation("/admin")
-
-        } catch (e: Exception) {
-            showAdminError("Неверный логин или пароль администратора")
-            setAdminLoading(false)
-        }
+    private fun showError(message: String) {
+        errorAlert.text = message
+        errorAlert.isVisible = true
+        Notification.show(message, 5000, Notification.Position.TOP_CENTER)
     }
 
-    private fun showError(message: String, isAdmin: Boolean) {
-        if (isAdmin) {
-            showAdminError(message)
-        } else {
-            errorAlert.text = message
-            errorAlert.isVisible = true
-            Notification.show(message, 5000, Notification.Position.TOP_CENTER)
-        }
-    }
-
-    private fun showAdminError(message: String) {
-        adminErrorAlert.text = message
-        adminErrorAlert.isVisible = true
-    }
-
-    private fun setLoading(loading: Boolean, isAdmin: Boolean) {
+    private fun setLoading(loading: Boolean) {
         loginSpinner.isVisible = loading
         loginButton.isEnabled = !loading
         usernameField.isEnabled = !loading
         passwordField.isEnabled = !loading
-    }
-
-    private fun setAdminLoading(loading: Boolean) {
-        adminLoginSpinner.isVisible = loading
-        adminLoginButton.isEnabled = !loading
-        adminUsernameField.isEnabled = !loading
-        adminPasswordField.isEnabled = !loading
     }
 
     override fun beforeEnter(event: BeforeEnterEvent) {

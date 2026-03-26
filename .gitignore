@@ -1,38 +1,24 @@
 ```
 # Compiled and build artifacts
 *.class
-*.o
-*.obj
-*.out
-build/
-target/
-
+*.jar
+*.war
+*.ear
+*.kotlin_metadata
+*.kotlin_built
 # Dependencies
 .gradle/
-.mypy_cache/
-.pytest_cache/
-__pycache__/
-node_modules/
-venv/
-.venv/
-
-# Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-
+build/
+target/
 # Logs and temp files
 *.log
 *.tmp
-*.temp
-
-# System files
-.DS_Store
-Thumbs.db
-
+*.swp
 # Environment
 .env
 .env.local
-*.env.*
+.env.*
+# Editors
+.vscode/
+.idea/
 ```
