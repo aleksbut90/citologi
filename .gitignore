@@ -1,1 +1,1 @@
-Nothing should be ignored since only a Kotlin source file was modified and no build artifacts, dependencies, or temporary files were present in the changes.
+Nothing should be ignored in this case. The changes only involve source code files (.java and .kt extensions) and do not include any build artifacts, dependencies, or temporary files that would warrant adding to .gitignore.
