@@ -491,7 +491,7 @@ class HomeView : VerticalLayout() {
     }
 
     private fun loadData() {
-        // Показываем прогресс-бар сразу при начале загрузки
+        // Показываем прогресс-бара сразу при начале загрузки
         if (!isAttached) return
         
         UI.getCurrent()?.access {
@@ -500,7 +500,7 @@ class HomeView : VerticalLayout() {
         
         ioScope.launch {
             try {
-                // Загрузка справочников
+                // Загрузка всех справочников согласно home.html
                 val doctors = userRepository.findAllDoctors()
                 
                 if (isAttached) {
@@ -517,6 +517,90 @@ class HomeView : VerticalLayout() {
                 }
                 val departments = patientRepository.findAllDepartments()
                 
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Загрузка услуг...")
+                    }
+                }
+                val services = studyRepository.findAllServices()
+                
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Загрузка характеров исследования...")
+                    }
+                }
+                val studyCharacters = studyRepository.findAllStudyCharacters()
+                
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Загрузка типов материала...")
+                    }
+                }
+                val materialTypes = studyRepository.findAllMaterialTypes()
+                
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Заключение гистолога...")
+                    }
+                }
+                val gistologTerms = studyRepository.findAllGistologTerms()
+                
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Загрузка типов услуг...")
+                    }
+                }
+                val serviceTypes = studyRepository.findAllServiceTypes()
+                
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Загрузка комментариев...")
+                    }
+                }
+                val comments = studyRepository.findAllComments()
+                
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Загрузка локализаций...")
+                    }
+                }
+                val localizations = studyRepository.findAllLocalizations()
+                
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Загрузка шифров цитологии...")
+                    }
+                }
+                val codeCytology = studyRepository.findAllCodeCytology()
+                
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Загрузка заключения Бетесда...")
+                    }
+                }
+                val bethesdaTerms = studyRepository.findAllBethesdaTerms()
+                
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Загрузка ЗНО/ДНО...")
+                    }
+                }
+                val znoDnoItems = studyRepository.findAllZnoDno()
+                
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Загрузка срочности...")
+                    }
+                }
+                val urgencyItems = studyRepository.findAllUrgency()
+                
+                if (isAttached) {
+                    UI.getCurrent()?.access {
+                        progressBar.updateMessage("Загрузка районов...")
+                    }
+                }
+                val raions = patientRepository.findAllRaions()
+                
                 // Обновляем UI в правильном порядке
                 uiScope.launch {
                     if (!isAttached) {
@@ -527,10 +611,36 @@ class HomeView : VerticalLayout() {
                     }
                     
                     UI.getCurrent()?.access {
+                        // Врачи
                         doctorComboBox.setItems(doctors)
                         referringDoctorComboBox.setItems(doctors)
+                        labTechnicianComboBox.setItems(doctors)
+                        
+                        // Организации и отделения
                         medicalOrganizationComboBox.setItems(organizations)
                         departmentComboBox.setItems(departments)
+                        
+                        // Услуги и типы
+                        serviceComboBox.setItems(services)
+                        
+                        // Характер исследования и материал
+                        researchTypeComboBox.setItems(studyCharacters)
+                        materialTypeComboBox.setItems(materialTypes)
+                        
+                        // Гистология и комментарии
+                        gistMatikComboBox.setItems(gistologTerms)
+                        commentComboBox.setItems(comments)
+                        
+                        // Локализации и шифры
+                        localizationComboBox.setItems(localizations)
+                        ciphersComboBox.setItems(codeCytology)
+                        
+                        // Бетесда и ЗНО/ДНО
+                        // bethesdaComboBox.setItems(bethesdaTerms) // Если есть такой комбобокс
+                        znoDnoComboBox.setItems(znoDnoItems)
+                        
+                        // Районы
+                        raionComboBox.setItems(raions)
                         
                         progressBar.updateMessage("Загрузка исследований...")
                         loadStudies()

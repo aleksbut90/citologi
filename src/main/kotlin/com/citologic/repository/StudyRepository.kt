@@ -263,70 +263,70 @@ class StudyRepository {
     }
     
     // Методы для загрузки справочников
-    fun findAllServices(): List<Pair<Int, String>> = try { transaction {
+    fun findAllServices(): List<String> = try { transaction {
         Services.selectAll().map { row ->
-            Pair(row[Services.id], row[Services.name])
-        }.distinctBy { it.first }
+            row[Services.name].orEmpty()
+        }.distinct()
     }} catch (e: Exception) { emptyList() }
     
-    fun findAllResearchTypes(): List<Pair<Int, String>> = try { transaction {
+    fun findAllStudyCharacters(): List<String> = try { transaction {
         ResearchTypes.selectAll().map { row ->
-            Pair(row[ResearchTypes.id], row[ResearchTypes.name])
-        }.distinctBy { it.first }
+            row[ResearchTypes.name].orEmpty()
+        }.distinct()
     }} catch (e: Exception) { emptyList() }
     
-    fun findAllMaterialTypes(): List<Pair<Int, String>> = try { transaction {
+    fun findAllMaterialTypes(): List<String> = try { transaction {
         MaterialTypes.selectAll().map { row ->
-            Pair(row[MaterialTypes.id], row[MaterialTypes.name])
-        }.distinctBy { it.first }
+            row[MaterialTypes.name].orEmpty()
+        }.distinct()
     }} catch (e: Exception) { emptyList() }
     
-    fun findAllGistologConclusions(): List<Pair<Int, String>> = try { transaction {
+    fun findAllGistologTerms(): List<String> = try { transaction {
         Gistolog.selectAll().map { row ->
-            Pair(row[Gistolog.id], row[Gistolog.name])
-        }.distinctBy { it.first }
+            row[Gistolog.name].orEmpty()
+        }.distinct()
     }} catch (e: Exception) { emptyList() }
     
-    fun findAllStudyTypes(): List<Pair<Int, String>> = try { transaction {
+    fun findAllServiceTypes(): List<String> = try { transaction {
         StudyTypes.selectAll().map { row ->
-            Pair(row[StudyTypes.id], row[StudyTypes.name])
-        }.distinctBy { it.first }
+            row[StudyTypes.name].orEmpty()
+        }.distinct()
     }} catch (e: Exception) { emptyList() }
     
-    fun findAllBethesdaTerms(): List<Pair<Int, String>> = try { transaction {
+    fun findAllBethesdaTerms(): List<String> = try { transaction {
         BethesdaTerms.selectAll().map { row ->
-            Pair(row[BethesdaTerms.id], row[BethesdaTerms.name])
-        }.distinctBy { it.first }
+            row[BethesdaTerms.name].orEmpty()
+        }.distinct()
     }} catch (e: Exception) { emptyList() }
     
-    fun findAllZnoDno(): List<Pair<Int, String>> = try { transaction {
+    fun findAllZnoDno(): List<String> = try { transaction {
         ZnoDno.selectAll().map { row ->
-            Pair(row[ZnoDno.id], row[ZnoDno.name])
-        }.distinctBy { it.first }
+            row[ZnoDno.name].orEmpty()
+        }.distinct()
     }} catch (e: Exception) { emptyList() }
     
-    fun findAllUrgencies(): List<Pair<Int, String>> = try { transaction {
+    fun findAllUrgency(): List<String> = try { transaction {
         Urgencies.selectAll().map { row ->
-            Pair(row[Urgencies.id], row[Urgencies.name])
-        }.distinctBy { it.first }
+            row[Urgencies.name].orEmpty()
+        }.distinct()
     }} catch (e: Exception) { emptyList() }
     
-    fun findAllComments(): List<Pair<Int, String>> = try { transaction {
+    fun findAllComments(): List<String> = try { transaction {
         Comments.selectAll().map { row ->
-            Pair(row[Comments.id], row[Comments.name])
-        }.distinctBy { it.first }
+            row[Comments.name].orEmpty()
+        }.distinct()
     }} catch (e: Exception) { emptyList() }
     
-    fun findAllLocalizations(): List<Pair<Int, String>> = try { transaction {
+    fun findAllLocalizations(): List<String> = try { transaction {
         Localizations.selectAll().map { row ->
-            Pair(row[Localizations.id], row[Localizations.name])
-        }.distinctBy { it.first }
+            row[Localizations.name].orEmpty()
+        }.distinct()
     }} catch (e: Exception) { emptyList() }
     
-    fun findAllCiphers(): List<Pair<Int, String>> = try { transaction {
+    fun findAllCodeCytology(): List<String> = try { transaction {
         CodeCytology.selectAll().map { row ->
-            Pair(row[CodeCytology.id], row[CodeCytology.name])
-        }.distinctBy { it.first }
+            row[CodeCytology.name].orEmpty()
+        }.distinct()
     }} catch (e: Exception) { emptyList() }
 }
 
