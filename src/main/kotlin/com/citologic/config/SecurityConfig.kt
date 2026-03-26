@@ -1,6 +1,7 @@
 package com.citologic.config
 
-import com.citologic.service.CustomUserDetailsService
+import com.citologic.service.CustomAuthenticationProvider
+import com.citologic.ui.LoginView
 import com.vaadin.flow.spring.security.VaadinWebSecurity
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,7 +19,9 @@ class SecurityConfig(
 ) : VaadinWebSecurity() {
 
     override fun configure(http: HttpSecurity) {
-        // Сначала настраиваем публичные маршруты ДО вызова super.configure()
+        // Устанавливаем LoginView для Vaadin
+        setLoginView(http, LoginView::class.java)
+        
         http
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
@@ -27,7 +30,8 @@ class SecurityConfig(
                     "/logout",
                     "/error",
                     "/favicon.ico",
-                    "/offline-stub.html"
+                    "/offline-stub.html",
+                    "/VAADIN/**"
                 ).permitAll()
                 
                 // Все остальные запросы требуют аутентификации
@@ -41,9 +45,6 @@ class SecurityConfig(
                 logout.invalidateHttpSession(true)
                 logout.deleteCookies("JSESSIONID")
             }
-        
-        // Вызываем super.configure() ПОСЛЕ настройки authorizeHttpRequests
-        super.configure(http)
     }
 
     @Bean
